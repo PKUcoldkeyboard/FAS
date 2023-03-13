@@ -17,6 +17,10 @@ PageRankFAS 算法的输入是一个有向图 G，由顶点 V 和边 E 组成。
 
 本项目的实现是基于C语言，可以直接下载源代码并编译运行。详细的使用方法请参考项目中的 README 文件。
 
-参考文献：
+## 如何使用
+
+## 项目协作者
+
+## 参考文献
 
 [1] Geladaris V ,  Lionakis P ,  Tollis I G . Computing a Feedback Arc Set Using PageRank[J].  2022.
