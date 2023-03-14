@@ -28,6 +28,10 @@ PageRankFAS 算法的输入是一个有向图 G，由顶点 V 和边 E 组成。
 
 ## 项目协作者
 
+## 许可证
+
+This project is licensed under the AGPL License. See the LICENSE file for more information.
+
 ## 参考文献
 
 [1] Geladaris V ,  Lionakis P ,  Tollis I G . Computing a Feedback Arc Set Using PageRank[J].  2022.
