@@ -1,29 +1,12 @@
-# Prerequisites
-*.d
-
-# Object files
+# Compiled Object files
 *.o
-*.ko
 *.obj
-*.elf
 
-# Linker output
-*.ilk
-*.map
-*.exp
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
-*.lib
+# Statically linked libraries
 *.a
-*.la
-*.lo
+*.lib
 
-# Shared objects (inc. Windows DLLs)
-*.dll
+# Dynamic libraries
 *.so
 *.so.*
 *.dylib
@@ -32,21 +15,38 @@
 *.exe
 *.out
 *.app
-*.i*86
-*.x86_64
-*.hex
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
+# Build directory
+/build/
+
+# Visual Studio files
+*.sln
+*.suo
+*.vcxproj
+*.vcxproj.filters
 *.pdb
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+# Xcode files
+*.xcodeproj
+*.xcworkspace
+*.dSYM/
+
+# Eclipse files
+.settings/
+.cproject
+.project
+
+# Text editor files
+*.swp
+*~
+.DS_Store
+
+# CMake generated files
+build/
+CMakeFiles/
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+install_manifest.txt
+
+FAS
