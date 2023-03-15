@@ -1,6 +1,7 @@
 # Minimum Feedback Arc Set
 
 [![Boost](https://img.shields.io/badge/Boost-1.81.0-brightgreen.svg)](https://www.boost.org/)
+![](https://img.shields.io/badge/Version-0.1-orange.svg)
 
 该项目是一个基于C++ Boost Graph Library(BGL)库的实现，实现了最小反馈弧集问题的三种近似算法。该问题是在有向图(DAG)中找到最小的反馈弧集，其中反馈弧集是指一组弧，使得从这些反馈弧的尾部到头部的路径构成一个环。
 
