@@ -1,3 +1,6 @@
+/*
+	dbg.h - Debug Functions
+*/
 #ifndef __dbg_h__
 #define __dbg_h__
 
@@ -27,4 +30,4 @@
 
 #define check_debug(A, M, ...) if(!(A)) { debug(M, ##__VA_ARGS__); errno=0; goto error; }
 
-#endif
+#endif // __dgb_H__

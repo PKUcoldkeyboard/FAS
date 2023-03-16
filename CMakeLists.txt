@@ -20,7 +20,7 @@ set(SOURCES
 include_directories(include)
 
 # 定义可执行文件
-add_executable(FAS ${SOURCES})
+add_executable(FASSolver ${SOURCES})
 
 # 链接Boost库
-target_link_libraries(FAS ${Boost_LIBRARIES})
+target_link_libraries(FASSolver ${Boost_LIBRARIES})
