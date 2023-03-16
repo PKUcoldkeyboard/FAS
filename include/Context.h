@@ -3,8 +3,9 @@
 */
 #ifndef __CONTEXT_H__
 #define __CONTEXT_H__
-#include "Strategy.h"
-#include "Factory.h"
+#include "GreedyFAS.h"
+#include "SortFAS.h"
+#include "PageRankFAS.h"
 
 // 上下文类
 class FASContext {
@@ -15,9 +16,17 @@ public:
         this->strategy = strategy;
     }
     FASContext(std::string algorithm) {
-        this->strategy = FASFactory::getStrategy(algorithm);
+        if (algorithm == "greedy") {
+            this->strategy = new GreedyFAS(); 
+        } else if (algorithm == "sort") {
+            this->strategy == new SortFAS();
+        } else {
+            this->strategy = new PageRankFAS();
+        }
     }
-    ~FASContext(){}
+    ~FASContext(){
+        delete strategy;
+    }
     void setStrategy(FASStrategy *strategy) {
         this->strategy = strategy;
     }

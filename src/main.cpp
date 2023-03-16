@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     std::string graph_path = argv[1];
     std::string algorithm = argv[2];
     
-    FASContext* context = new FASContext(algorithm);
+    std::unique_ptr<FASContext> context(new FASContext(algorithm));
 
     Graph g;
     // @TODO: 构造有向图
