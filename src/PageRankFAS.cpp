@@ -3,9 +3,22 @@
 #include <boost/range/irange.hpp>
 #include <set>
 
-std::vector<int> PageRankFAS::getFAS(Graph &g) {
-    std::vector<int> result;
+std::vector<Edge> PageRankFAS::getFAS(Graph &g) {
+    std::vector<Edge> feedback_arcs;
     // @TODO: 实现PageRankFAS算法
-    printf("Hello PageRankFAS\n");
-    return result;
+    return feedback_arcs;
+}
+
+Graph* PageRankFAS::getLineGraph(Graph &g) {
+    return nullptr;
+}
+
+std::vector<double> PageRankFAS::calculatePageRank(Graph &lineGraph) {
+    std::vector<double> ret;
+    return ret;
+}
+
+std::vector<int> PageRankFAS::connected_components(Graph &g) {
+    std::vector<int> ret;
+    return ret;
 }

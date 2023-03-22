@@ -4,11 +4,11 @@
 #ifndef __SORT_FAS_H__
 #define __SORT_FAS_H__
 
-#include "Strategy.h"
+#include "strategy.h"
 
 class SortFAS: public FASStrategy {
 public:
-    std::vector<int> getFAS(Graph &g) override;
+    std::vector<Edge> getFAS(Graph &g) override;
 };
 
 #endif // __SORT_FAS_H__
