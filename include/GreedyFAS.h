@@ -4,11 +4,11 @@
 #ifndef __GREEDY_FAS_H__
 #define __GREEDY_FAS_H__
 
-#include "Strategy.h"
+#include "strategy.h"
 
 class GreedyFAS: public FASStrategy {
 public:
-    std::vector<int> getFAS(Graph &g) override;
+    std::vector<Edge> getFAS(Graph &g) override;
 };
 
 #endif // __GREEDY_FAS_H__

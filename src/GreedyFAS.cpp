@@ -3,9 +3,8 @@
 #include <boost/range/irange.hpp>
 #include <set>
 
-std::vector<int> GreedyFAS::getFAS(Graph &g) {
-    std::vector<int> result;
+std::vector<Edge> GreedyFAS::getFAS(Graph &g) {
+    std::vector<Edge> feedback_arcs;
     // @TODO: 实现GreedyFAS算法
-    printf("Hello GreedyFAS\n");
-    return result;
+    return feedback_arcs;
 }

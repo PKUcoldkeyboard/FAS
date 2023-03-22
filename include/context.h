@@ -1,5 +1,5 @@
 /**
- * Context.h - 上下文类
+ * context.h - 上下文类
 */
 #ifndef __CONTEXT_H__
 #define __CONTEXT_H__
@@ -30,7 +30,7 @@ public:
     void setStrategy(FASStrategy *strategy) {
         this->strategy = strategy;
     }
-    std::vector<int> getFAS(Graph& g) {
+    std::vector<Edge> getFAS(Graph& g) {
         return strategy->getFAS(g);
     }
 };

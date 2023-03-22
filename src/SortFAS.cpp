@@ -3,9 +3,8 @@
 #include <boost/range/irange.hpp>
 #include <set>
 
-std::vector<int> SortFAS::getFAS(Graph &g) {
-    std::vector<int> result;
+std::vector<Edge> SortFAS::getFAS(Graph &g) {
+    std::vector<Edge> feedback_arcs;
     // @TODO: 实现SortFAS算法
-    printf("Hello SortFAS\n");
-    return result;
+    return feedback_arcs;
 }
