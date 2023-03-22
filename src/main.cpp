@@ -4,7 +4,7 @@
  * Usage: ./FASSolver <path/to/graph> [algorithm (greedy | sort | pagerank)] 
 */
 #include <iostream>
-#include "Context.h"
+#include "context.h"
 
 void usage() {
     printf("Usage: ./FASSolver <path/to/graph> [algorithm (greedy | sort | pagerank)]\n");
@@ -15,13 +15,13 @@ int main(int argc, char** argv) {
     if (argc != 3) {
         usage();
     }
-    std::string graph_path = argv[1];
-    std::string algorithm = argv[2];
+    std::string graph_path(argv[1]);
+    std::string algorithm(argv[2]);
     
-    std::unique_ptr<FASContext> context(new FASContext(algorithm));
+    auto context = std::make_unique<FASContext>(algorithm);
 
     Graph g;
     // @TODO: 构造有向图
-    std::vector<int> result = context->getFAS(g);
+    auto result = context->getFAS(g);
     return 0;
 }

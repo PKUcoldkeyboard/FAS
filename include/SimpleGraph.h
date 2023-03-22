@@ -4,7 +4,7 @@
 #ifndef __SIMPLE_GRAPH_H__
 #define __SIMPLE_GRAPH_H__
 
-#include "Strategy.h"
+#include "base.h"
 
 class SimpleGraph : public Graph {
 public:
@@ -27,7 +27,7 @@ public:
         add_edge(E, F, *this); // e6
         add_edge(F, G, *this); // e7
         add_edge(G, E, *this); // e8
-    }
+    };
 };
 
 #endif // __SIMPLE_GRAPH_H__
