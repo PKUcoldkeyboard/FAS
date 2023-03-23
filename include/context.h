@@ -6,6 +6,7 @@
 #include "GreedyFAS.h"
 #include "SortFAS.h"
 #include "PageRankFAS.h"
+#include "dbg.h"
 
 // 上下文类
 class FASContext {
@@ -19,7 +20,7 @@ public:
         if (algorithm == "greedy") {
             this->strategy = new GreedyFAS(); 
         } else if (algorithm == "sort") {
-            this->strategy == new SortFAS();
+            this->strategy = new SortFAS();
         } else {
             this->strategy = new PageRankFAS();
         }
@@ -32,6 +33,8 @@ public:
     }
     std::vector<Edge> getFAS(Graph& g) {
         return strategy->getFAS(g);
+    error:
+        exit(0);
     }
 };
 
