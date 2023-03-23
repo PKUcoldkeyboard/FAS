@@ -1,0 +1,3 @@
+[submodule "benchmark/FlameGraph"]
+	path = benchmark/FlameGraph
+	url = https://ghproxy.com/github.com/brendangregg/FlameGraph
