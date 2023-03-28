@@ -12,8 +12,8 @@ public:
 private:
     Graph* getLineGraph(Graph &g);
     std::vector<double> calculatePageRank(Graph &lingGraph);
-    std::vector<Graph> connected_components(Graph &g);
-    bool has_circle(Graph &g);
+    std::vector<Graph> getConnectedComponents(Graph &g);
+    bool isCyclic(Graph &g);
 };
 
 #endif // __PAGERANK_H__
