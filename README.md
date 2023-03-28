@@ -52,10 +52,10 @@ PageRankFAS 算法的输入是一个有向图 G，由顶点 V 和边 E 组成。
    sudo apt-get update
    ```
 
-2. 输入以下命令来安装Boost库：
+2. 输入以下命令来安装Boost库和gtest库：
 
    ```
-   sudo apt-get install libboost-all-dev
+   sudo apt-get install libboost-all-dev libgtest-dev
    ```
 
 3. 输入以下命令编译项目
