@@ -43,7 +43,7 @@ std::vector<Edge> PageRankFAS::getFAS(Graph &g) {
     std::vector<Edge> feedback_arcs;
     log_info("Starting PageRankFAS...");
 
-    std::vector<std::vector<int>> sccs = PageRankFAS::connected_components(g);
+    std::vector<std::vector<int>> sccs = PageRankFAS::getConnectedComponents(g);
     for (int i = 0; i < sccs.size(); ++i) {
         std::cout << "SCC " << i << ": ";
         for (int j = 0; j < sccs[i].size(); ++j)
@@ -64,7 +64,7 @@ std::vector<double> PageRankFAS::calculatePageRank(Graph &lineGraph) {
     return ret;
 }
 
-std::vector<std::vector<int>> PageRankFAS::connected_components(Graph &g) {
+std::vector<std::vector<int>> PageRankFAS::getConnectedComponents(Graph &g) {
 
     // 利用 Kosaraju 算法计算给定图中的强连接分量
     std::vector<std::vector<int>> ret;
