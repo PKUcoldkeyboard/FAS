@@ -1,8 +1,15 @@
 /**
- * base.h 图数据类型封装
+ * base.h 图数据类型封装和基本包引入
 */
 #ifndef __BASE_H__
 #define __BASE_H__
+#include "spdlog_common.h"
+#include <set>
+#include <stack>
+#include <vector>
+#include <queue>
+#include <string>
+#include <iostream>
 #include <boost/graph/adjacency_list.hpp>
 
 // 定义Graph数据类型
