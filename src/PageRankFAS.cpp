@@ -11,11 +11,10 @@
 #include <boost/graph/reverse_graph.hpp>
 #include <boost/graph/depth_first_search.hpp>
 
-void dfs(const Graph& g, int v, std::vector<bool>& visited, std::stack<int> &stk) {
+void dfs(const Graph &g, int v, std::vector<bool>& visited, std::stack<int> &stk) {
     visited[v] = true;
     boost::graph_traits<Graph>::out_edge_iterator ei, ei_end;
-    for (boost::tie(ei, ei_end) = boost::out_edges(v, g); ei != ei_end; ++ei)
-    {
+    for (boost::tie(ei, ei_end) = boost::out_edges(v, g); ei != ei_end; ++ei) {
         int u = boost::target(*ei, g);
         if (!visited[u])
             dfs(g, u, visited, stk);
@@ -23,21 +22,39 @@ void dfs(const Graph& g, int v, std::vector<bool>& visited, std::stack<int> &stk
     stk.push(v);
 }
 
-void dfs_reverse(const Graph& g, int v, std::vector<bool> &visited, std::vector<int> &scc) {
+void dfs_reverse(const Graph &g, int v, std::vector<bool> &visited, std::vector<int> &scc) {
     visited[v] = true;
     scc.push_back(v);
 
     std::cout << v << " ";
 
     boost::graph_traits<Graph>::out_edge_iterator ei, ei_end;
-    for (boost::tie(ei, ei_end) = boost::out_edges(v, g); ei != ei_end; ++ei)
-    {
+    for (boost::tie(ei, ei_end) = boost::out_edges(v, g); ei != ei_end; ++ei) {
         int u = boost::target(*ei, g);
         if (!visited[u])
             dfs_reverse(g, u, visited, scc);
     }
 }
 
+bool dfs_cycle(const Graph &g, int v, std::vector<bool> &visited, std::vector<bool> &on_stack) {
+    visited[v] = true;
+    on_stack[v] = true;
+
+    boost::graph_traits<Graph>::out_edge_iterator ei, ei_end;
+    for (boost::tie(ei, ei_end) = boost::out_edges(v, g); ei != ei_end; ++ei) {
+        Vertex u = boost::target(*ei, g);
+        if (!visited[u]) {
+            if (dfs_cycle(g, u, visited, on_stack))
+                return true;
+        }
+        else if (on_stack[u]) {
+            return true;
+        }
+    }
+
+    on_stack[v] = false;
+    return false;
+}
 
 std::vector<Edge> PageRankFAS::getFAS(Graph &g) {
     std::vector<Edge> feedback_arcs;
@@ -50,6 +67,11 @@ std::vector<Edge> PageRankFAS::getFAS(Graph &g) {
             std::cout << sccs[i][j] << " ";
         std::cout << std::endl;
     }
+
+    if (PageRankFAS::isCyclic(g)) 
+        std::cout << "Graph is cyclic." << std::endl;
+    else
+        std::cout << "Graph is not cyclic." << std::endl;
 
     // @TODO: 实现PageRankFAS算法
     return feedback_arcs;
@@ -100,48 +122,17 @@ std::vector<std::vector<int>> PageRankFAS::getConnectedComponents(Graph &g) {
     }
 
     return ret;
-    /*
-    // 利用 Kosaraju 算法计算给定图中的强连接分量
-    //
-    //
-    //
-    // 第一次DFS遍历，将节点按发现时间排序
-    std::vector<int> discoverTime(boost::num_vertices(g));
-    KosarajuDFS dfs1(discoverTime);
-    boost::depth_first_search(g, boost::visitor(dfs1));
-    
-    // 对原图进行反转
-    Graph r(boost::num_vertices(g));
-    auto trans_map = boost::get(boost::vertex_index, r);
-    auto reverse = boost::make_reverse_graph(g);
-    auto orig_map = boost::get(boost::vertex_index, g);
-    for (auto e : boost::make_iterator_range(boost::edges(reverse))) {
-        boost::add_edge(boost::source(e, reverse), boost::target(e, reverse), r);
+}
+
+bool PageRankFAS::isCyclic(Graph &g) {
+
+    std::vector<bool> visited(boost::num_vertices(g), false);
+    std::vector<bool> on_stack(boost::num_vertices(g), false);
+
+    for (int i = 0; i < num_vertices(g); ++i) {
+        if (!visited[i]) {
+            if (dfs_cycle(g, i, visited, on_stack))
+                return true;
+        }
     }
-    */
-    //boost::print_graph(g, boost::get(boost::vertex_index, g));
-    //boost::print_graph(r, boost::get(boost::vertex_index, r));
-    
-    // 在反转图上进行第一次 DFS
-    //std::vector<int> discover_time(boost::num_vertices(g));
-    //int t = 0;
-    //boost::depth_first_search(reverse, boost::visitor(boost::make_dfs_visitor(boost::make_dfs_time_visitor(boost::make_iterator_property_map(discover_time.begin(), orig_map, 0, discover_time[0]), boost::on_discover_vertex([&](auto v, auto t) { discover_time[v] = t++; })))));
-    /*
-    // 在原图上按照发现时间进行排序
-    std::vector<Graph::vertex_descriptor> sorted_vertices(boost::num_vertices(g));
-    boost::copy(boost::vertices(g), sorted_vertices.begin());
-    std::sort(sorted_vertices.begin(), sorted_vertices.end(), [&](auto u, auto v) { return discover_time[u] > discover_time[v]; });
-
-    // 在原图上进行第二次 DFS
-    std::vector<std::vector<Graph::vertex_descriptor>> sccs;
-    std::vector<int> component(boost::num_vertices(g));
-    boost::depth_first_search(g, boost::visitor(boost::make_dfs_visitor(boost::make_dfs_color_visitor(boost::make_iterator_property_map(component.begin(), orig_map, 0, component[0]), boost::on_finish_vertex([&](auto v, auto& g) { sccs.back().push_back(v); })))).root_vertex(sorted_vertices[0]));
-
-    // 返回强连接分量
-    return sccs;
-    
-    */
-
-    //std::vector<int> ret;
-    //return ret;
 }
