@@ -4,7 +4,6 @@
 #ifndef __STRATEGY_H__
 #define __STRATEGY_H__
 #include "base.h"
-#include <vector>
 
 // 策略类
 class FASStrategy {
