@@ -3,7 +3,6 @@
  * 
  * Usage: ./FASSolver <path/to/graph> [algorithm (greedy | sort | pagerank)] 
 */
-#include <iostream>
 #include "context.h"
 #include "SimpleGraph.h"
 

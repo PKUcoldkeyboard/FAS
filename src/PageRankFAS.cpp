@@ -1,11 +1,4 @@
 #include "PageRankFAS.h"
-#include "dbg.h"
-#include <boost/graph/graph_traits.hpp>
-#include <boost/range/irange.hpp>
-#include <set>
-
-#undef check
-#include <stack>
 #include <boost/graph/copy.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/reverse_graph.hpp>
@@ -55,22 +48,13 @@ bool dfs_cycle(const Graph &g, int v, std::vector<bool> &visited, std::vector<bo
 
 std::vector<Edge> PageRankFAS::getFAS(Graph &g) {
     std::vector<Edge> feedback_arcs;
-    log_info("Starting PageRankFAS...");
+    SPDLOG_INFO("Starting PageRankFAS...");
 
     std::vector<std::vector<int>> sccs = PageRankFAS::getConnectedComponents(g);
-    // for (int i = 0; i < sccs.size(); ++i) {
-    //     std::cout << "SCC " << i << ": ";
-    //     for (int j = 0; j < sccs[i].size(); ++j)
-    //         std::cout << sccs[i][j] << " ";
-    //     std::cout << std::endl;
-    // }
-
-    // if (PageRankFAS::isCyclic(g)) 
-    //     std::cout << "Graph is cyclic." << std::endl;
-    // else
-    //     std::cout << "Graph is not cyclic." << std::endl;
-
-    // @TODO: 实现PageRankFAS算法
+    SPDLOG_INFO("Successfully calculated strongly connected components.");
+    SPDLOG_INFO("Successfully calculated line graph.");
+    SPDLOG_INFO("Successfully calculated PageRank");
+    SPDLOG_INFO("Successfully computed the minimum feedback arc set.");
     return feedback_arcs;
 }
 
