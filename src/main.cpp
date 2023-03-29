@@ -5,6 +5,7 @@
 */
 #include <iostream>
 #include "context.h"
+#include "SimpleGraph.h"
 
 void usage() {
     printf("Usage: ./FASSolver <path/to/graph> [algorithm (greedy | sort | pagerank)]\n");
@@ -18,10 +19,14 @@ int main(int argc, char** argv) {
     std::string graph_path(argv[1]);
     std::string algorithm(argv[2]);
     
-    auto context = std::make_unique<FASContext>(algorithm);
+    FASContext context(algorithm);
+    Graph g(5);
+    std::vector<EdgePair> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 2}, {2, 1}};
 
-    Graph g;
+    for (auto &edge : edges) {
+        add_edge(edge.first, edge.second, g);
+    }
     // @TODO: 构造有向图
-    auto result = context->getFAS(g);
+    auto result = context.getFAS(g);
     return 0;
 }
