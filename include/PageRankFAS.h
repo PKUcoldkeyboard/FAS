@@ -1,6 +1,7 @@
 /**
  * PageRankFAS.h - PageRankFAS Solver
-*/
+ * This class implements a FASStrategy for solving the feedback arc set problem using PageRank algorithm.
+ */
 #ifndef __PAGERANK_FAS_H__
 #define __PAGERANK_FAS_H__
 
@@ -8,32 +9,15 @@
 
 class PageRankFAS: public FASStrategy {
 public:
-    std::vector<Edge> getFAS(Graph &g) override;
+    std::vector<EdgePair> getFeedbackArcSet(Graph &g) override;
 private:
-    /**
-     * @brief getLineGraph
-     * @param g the graph
-     * @return the line graph
-    */
-    Graph* getLineGraph(Graph &g);
-    /**
-     * @brief calculatePageRank for each edge
-     * @param lineGraph the line graph
-     * @return the page rank value for each edge
-    */
-    std::vector<double> calculatePageRank(Graph &lingGraph);
-    /**
-     * @brief isCyclic judge is the graph cyclic
-     * @param g the graph
-     * @return true if the graph has cycle else false
-    */
+    IdToEdgeMap id_to_edge_map;
+    EdgeToVertexMap edge_to_vertex_map;
+    void getLineGraph(const Graph &g, Graph& lineGraph);
+    void getLineGraph(const Graph &g, Graph &lineGraph, Vertex v, Vertex prev, std::vector<bool> &visited);
+    void calculatePageRank(const Graph &lineGraph, std::vector<double> &pagerank);
     bool isCyclic(Graph &g);
-    /**
-     * @brief getConnectedComponents for Graph
-     * @param g the graph
-     * @return the connected components
-    */
-    std::vector<std::vector<int>> getConnectedComponents(Graph &g);
+    void getConnectedComponents(Graph &g, std::vector<Graph> &sccs);
 };
 
 #endif // __PAGERANK_H__
