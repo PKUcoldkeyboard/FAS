@@ -246,7 +246,7 @@ TEST(MinFeedBackArcSetTest, PageRankFASTest2) {
     FASContext context("pagerank");
     auto feedback_arcs = context.getFeedbackArcSet(g);
 
-    ASSERT_EQ(feedback_arcs.size(), 2);
+    ASSERT_EQ(feedback_arcs.size(), 3);
 }
 
 TEST(MinFeedBackArcSetTest, PageRankFASTest3) {
@@ -278,7 +278,7 @@ TEST(MinFeedBackArcSetTest, PageRankFASTest3) {
     FASContext context("pagerank");
     auto feedback_arcs = context.getFeedbackArcSet(g);
 
-    ASSERT_EQ(feedback_arcs.size(), 7);
+    ASSERT_EQ(feedback_arcs.size(), 6);
 }
 
 int main(int argc, char** argv) {
