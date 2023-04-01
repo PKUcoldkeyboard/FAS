@@ -63,10 +63,9 @@ TEST(StrongConnectedComponentsTest, StrongConnectedComponentsTest1) {
 
     // 调用getConnectedComponents获取连通分量
     PageRankFAS fas;
-    std::vector<Graph> sccs;
-    fas.getConnectedComponents(g, sccs);
+    std::vector<std::set<Vertex>> sccs;
+    fas.computeStronglyConnectedComponents(g, sccs);
     ASSERT_EQ(sccs.size(), 3);
-
 }
 
 TEST(StrongConnectedComponentsTest, StrongConnectedComponentsTest2) {
@@ -80,8 +79,8 @@ TEST(StrongConnectedComponentsTest, StrongConnectedComponentsTest2) {
 
     // 调用getConnectedComponents获取连通分量
     PageRankFAS fas;
-    std::vector<Graph> sccs;
-    fas.getConnectedComponents(g, sccs);
+    std::vector<std::set<Vertex>> sccs;
+    fas.computeStronglyConnectedComponents(g, sccs);
     ASSERT_EQ(sccs.size(), 3);
 }
 
@@ -96,10 +95,9 @@ TEST(StrongConnectedComponentsTest, StrongConnectedComponentsTest3) {
 
     // 调用getConnectedComponents获取连通分量
     PageRankFAS fas;
-    std::vector<Graph> sccs;
-    fas.getConnectedComponents(g, sccs);
+    std::vector<std::set<Vertex>> sccs;
+    fas.computeStronglyConnectedComponents(g, sccs);
     ASSERT_EQ(sccs.size(), 2);
-
 }
 
 /**
@@ -193,11 +191,25 @@ TEST(MinFeedBackArcSetTest,SortFASTest2) {
 */
 TEST(MinFeedBackArcSetTest, PageRankFASTest1) {
     // 创建Graph
-    Graph g(5);
+    Graph g;
     std::vector<EdgePair> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 0}};
 
-    for (auto &edge : edges) {
-        add_edge(edge.first, edge.second, g);
+    std::unordered_map<int, Vertex> vertex_map;
+    for (const auto & edge: edges) {
+        if (!vertex_map.count(edge.first)) {
+            auto v = add_vertex(g);
+            g[v].id = edge.first;
+            vertex_map[edge.first] = v;
+        }
+        if (!vertex_map.count(edge.second)) {
+            auto v = add_vertex(g);
+            g[v].id = edge.second;
+            vertex_map[edge.second] = v;
+        }
+    }
+
+    for (const auto &edge : edges) {
+        add_edge(vertex_map[edge.first], vertex_map[edge.second], g);
     }
 
     // 调用PageRankFAS获取最小反馈弧集
@@ -205,17 +217,29 @@ TEST(MinFeedBackArcSetTest, PageRankFASTest1) {
     auto feedback_arcs = context.getFeedbackArcSet(g);
 
     ASSERT_EQ(feedback_arcs.size(), 1);
-    // ASSERT_EQ(source(feedback_arcs[0], g), 4);
-    // ASSERT_EQ(target(feedback_arcs[0], g), 0);
 }
 
 TEST(MinFeedBackArcSetTest, PageRankFASTest2) {
     // 创建Graph
-    Graph g(5);
+    Graph g;
     std::vector<EdgePair> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 0}, {0, 2}, {1, 3}, {2, 4}, {3, 0}, {4, 1}};
 
-    for (auto &edge : edges) {
-        add_edge(edge.first, edge.second, g);
+    std::unordered_map<int, Vertex> vertex_map;
+    for (const auto & edge: edges) {
+        if (!vertex_map.count(edge.first)) {
+            auto v = add_vertex(g);
+            g[v].id = edge.first;
+            vertex_map[edge.first] = v;
+        }
+        if (!vertex_map.count(edge.second)) {
+            auto v = add_vertex(g);
+            g[v].id = edge.second;
+            vertex_map[edge.second] = v;
+        }
+    }
+
+    for (const auto &edge : edges) {
+        add_edge(vertex_map[edge.first], vertex_map[edge.second], g);
     }
 
     // 调用PageRankFAS获取最小反馈弧集
@@ -223,10 +247,38 @@ TEST(MinFeedBackArcSetTest, PageRankFASTest2) {
     auto feedback_arcs = context.getFeedbackArcSet(g);
 
     ASSERT_EQ(feedback_arcs.size(), 2);
-    // ASSERT_EQ(source(feedback_arcs[0], g), 4);
-    // ASSERT_EQ(target(feedback_arcs[0], g), 1);
-    // ASSERT_EQ(source(feedback_arcs[1], g), 3);
-    // ASSERT_EQ(target(feedback_arcs[1], g), 0);
+}
+
+TEST(MinFeedBackArcSetTest, PageRankFASTest3) {
+    // 严格测试，需要至少去掉7条边才能没有环的图
+    // 创建Graph
+    Graph g;
+    std::vector<EdgePair> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 0}, {0, 2}, {1, 3}, {2, 4}, {3, 0}, {4, 1},
+                                   {0, 5}, {1, 6}, {2, 7}, {3, 8}, {4, 9}, {5, 6}, {6, 7}, {7, 8}, {8, 9}, {9, 5},
+                                   {5, 7}, {6, 8}, {7, 9}, {8, 5}, {9, 6}};
+    std::unordered_map<int, Vertex> vertex_map;
+    for (const auto & edge: edges) {
+        if (!vertex_map.count(edge.first)) {
+            auto v = add_vertex(g);
+            g[v].id = edge.first;
+            vertex_map[edge.first] = v;
+        }
+        if (!vertex_map.count(edge.second)) {
+            auto v = add_vertex(g);
+            g[v].id = edge.second;
+            vertex_map[edge.second] = v;
+        }
+    }
+
+    for (const auto &edge : edges) {
+        add_edge(vertex_map[edge.first], vertex_map[edge.second], g);
+    }
+
+    // 调用PageRankFAS获取最小反馈弧集
+    FASContext context("pagerank");
+    auto feedback_arcs = context.getFeedbackArcSet(g);
+
+    ASSERT_EQ(feedback_arcs.size(), 7);
 }
 
 int main(int argc, char** argv) {

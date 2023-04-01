@@ -34,7 +34,7 @@ bool dfs_cycle(const Graph &g, Vertex v, std::vector<bool> &visited, std::vector
     visited[v] = true;
     on_stack[v] = true;
 
-    boost::graph_traits<Graph>::out_edge_iterator ei, ei_end;
+    out_edge_iter ei, ei_end;
     for (boost::tie(ei, ei_end) = boost::out_edges(v, g); ei != ei_end; ++ei) {
         Vertex u = boost::target(*ei, g);
         if (!visited[u]) {
@@ -50,77 +50,94 @@ bool dfs_cycle(const Graph &g, Vertex v, std::vector<bool> &visited, std::vector
     return false;
 }
 
+// @TODO: fix this function
 std::vector<EdgePair> PageRankFAS::getFeedbackArcSet(Graph &g) {
     std::vector<EdgePair> feedback_arcs;
     SPDLOG_INFO("Starting PageRankFAS...");
 
     while (isCyclic(g)) {
-        std::vector<Graph> sccs;
-        getConnectedComponents(g, sccs);
-        for (auto &scc : sccs) {
-            Graph lineGraph;
-            getLineGraph(scc, lineGraph);
+        SPDLOG_INFO("Graph is cyclic. Calculating the minimum feedback arc set...");
+        // 求图G的强连通分量
+        std::vector<std::set<Vertex>> sccs;
+        computeStronglyConnectedComponents(g, sccs);
 
-            srand(time(NULL));
-            auto v = rand() % boost::num_vertices(scc);
+        int count = 0;
+        // 为每个强连通分量创建线图
+        for (auto &scc: sccs) {
+            // 只有一个节点，直接跳过
+            if (scc.size() == 1) {
+                continue;
+            }
+            EdgeToVertexMap edge_to_vertex_map;
+            VertexToEdgeMap vertex_to_edge_map;
+            // 计算强连通分量的线图
+            LineGraph lg;
+            std::vector<bool> visited(boost::num_vertices(g), false);
+            // 随机选取scc中的一个节点作为起点
+            srand(time(nullptr));
+            auto v = *std::next(scc.begin(), rand() % scc.size());
+            getLineGraph(g, lg, v, INVALID_VERTEX, visited, scc, edge_to_vertex_map, vertex_to_edge_map);
 
+            // 计算线图的PageRank值
             std::vector<double> pagerank;
-            calculatePageRank(lineGraph, pagerank);
+            computePageRank(lg, pagerank);
+            
+            // 选取PageRank值最大的边
+            auto max_pagerank = std::max_element(pagerank.begin(), pagerank.end());
+            auto max_pagerank_index = std::distance(pagerank.begin(), max_pagerank);
+            auto max_pagerank_edge = lg[max_pagerank_index].edge_pair;
 
-            auto max_element_iter = std::max_element(pagerank.begin(), pagerank.end());
-            auto u = std::distance(pagerank.begin(), max_element_iter);
+            // 将选取的边加入feedback_arcs
+            feedback_arcs.push_back(max_pagerank_edge);
 
-            auto edge = id_to_edge_map[lineGraph[u].id];
-
-            feedback_arcs.push_back(edge);
-
-            boost::remove_edge(edge.first, edge.second, g);
+            // 删除选取的边, 线图中的edge_pair存储了原图中两个节点的id对，所以可以直接删除，使用vertexToEdgeMap
+            auto e = vertex_to_edge_map[max_pagerank_index];
+            boost::remove_edge(e, g);
         }
     }
-
+    // 测试一下输出结果
+    SPDLOG_INFO("Feedback Arcs: ");
+    for (auto &e : feedback_arcs) {
+        SPDLOG_INFO("({}, {})", e.first, e.second);
+    }
     SPDLOG_INFO("Successfully calculate the minimum feedback arc set.");
     return feedback_arcs;
 }
 
-void PageRankFAS::getLineGraph(const Graph &g, Graph &lineGraph) {
-    edge_iter ei, ei_end;
-    for (boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ++ei) {
-        auto u = boost::source(*ei, g);
-        auto v = boost::target(*ei, g);
-        auto z = boost::add_vertex(lineGraph);
-        auto e = std::make_pair(u, v);
-        edge_to_vertex_map[e] = z;
-        id_to_edge_map[g[z].id] = e;
-    }
 
-    srand(time(NULL));
-    auto v = rand() % boost::num_vertices(g);
-    std::vector<bool> visited(boost::num_vertices(g), false);
-    getLineGraph(g, lineGraph, v, INVALID_VERTEX, visited);
-}
-
-void PageRankFAS::getLineGraph(const Graph &g, Graph &lineGraph, Vertex v, Vertex prev, std::vector<bool> &visited) {
-    // mark v as visited
+void PageRankFAS::getLineGraph(const Graph &g, LineGraph &lineGraph, Vertex v, Vertex prev, std::vector<bool> &visited, std::set<Vertex> &scc, EdgeToVertexMap &edge_to_vertex_map, VertexToEdgeMap &vertex_to_edge_map) {
     visited[v] = true;
-    // for each edge e=(v,u) outgoing of v
     out_edge_iter ei, ei_end;
+    // 遍历所有从v出发的边
     for (boost::tie(ei, ei_end) = boost::out_edges(v, g); ei != ei_end; ++ei) {
-        Vertex u = boost::target(*ei, g);
-        Vertex z = edge_to_vertex_map[std::make_pair(v, u)];
-        
-        // create an edge in L(G) from prev to v
+        auto u = boost::target(*ei, g);
+        // 如果u不在scc中，直接跳过
+        if (!scc.count(u)) {
+            continue;
+        }
+        // 根据e=(v, u)找到L(G)中对应的节点索引
+        auto e = std::make_pair(g[v].id, g[u].id);
+        Vertex z;
+        if (edge_to_vertex_map.count(e)) {
+            z = edge_to_vertex_map[e];
+        } else {
+            z = boost::add_vertex(lineGraph);
+            lineGraph[z].edge_pair = e;
+            edge_to_vertex_map[e] = z;
+            vertex_to_edge_map[z] = *ei;
+        }
+
         if (prev != INVALID_VERTEX && prev != z) {
             boost::add_edge(prev, z, lineGraph);
         }
 
         if (!visited[u]) {
-            getLineGraph(g, lineGraph, u, z, visited);
+            getLineGraph(g, lineGraph, u, z, visited, scc, edge_to_vertex_map, vertex_to_edge_map);
         } else {
-            // for each node k in L(G) that orginates from u, create an edge in L(G) from z to k
             out_edge_iter ej, ej_end;
-            for (boost::tie(ej, ej_end) = boost::out_edges(u, lineGraph); ej != ej_end; ++ej) {
-                Vertex k = boost::target(*ej, lineGraph);
-                Vertex uk = edge_to_vertex_map[std::make_pair(u, k)];
+            for (boost::tie(ej, ej_end) = boost::out_edges(u, g); ej != ej_end; ++ej) {
+                auto k = boost::target(*ej, lineGraph);
+                auto uk = edge_to_vertex_map[std::make_pair(u, k)];
                 if (uk != z) {
                     boost::add_edge(z, uk, lineGraph);
                 }
@@ -129,37 +146,44 @@ void PageRankFAS::getLineGraph(const Graph &g, Graph &lineGraph, Vertex v, Verte
     }
 }
 
-void calculatePageRank(const Graph &lineGraph, std::vector<double> &pagerank) {
+void PageRankFAS::computePageRank(const LineGraph &lineGraph, std::vector<double> &pagerank) {
     const double dumping_factor = 0.85;
     const int max_iterations = 100;
     const double convergence_threshold = 1e-6;
 
-    boost::property_map<Graph, boost::vertex_index_t>::type index_map = get(boost::vertex_index, lineGraph);
+    // key为顶点，value为索引, pagerank的大小为索引的最大值+1
+    boost::property_map<LineGraph, boost::vertex_index_t>::type index_map = get(boost::vertex_index, lineGraph);
 
+    // 初始化pagerank
     pagerank.resize(num_vertices(lineGraph), 1.0 / num_vertices(lineGraph));
     std::vector<double> old_pagerank(num_vertices(lineGraph));
 
+    // 迭代计算pagerank
     for (int iter = 0; iter < max_iterations; iter++) {
         old_pagerank = pagerank;
         vertex_iter vi, vi_end;
+        // 遍历线图的所有顶点
         for (boost::tie(vi, vi_end) = boost::vertices(lineGraph); vi != vi_end; vi++) {
             double rank_sum = 0;
             in_edge_iter ei, ei_end;
+            // 遍历顶点vi的所有入边
             for (boost::tie(ei, ei_end) = boost::in_edges(*vi, lineGraph); ei != ei_end; ei++) {
-                Vertex src = boost::source(*ei, lineGraph);
-                auto n_out_edges = boost::out_degree(src, lineGraph);
+                auto u = boost::source(*ei, lineGraph);
+                auto n_out_edges = boost::out_degree(u, lineGraph);
                 if (n_out_edges > 0) {
-                    rank_sum += old_pagerank[index_map[src]] / n_out_edges;
+                    rank_sum += old_pagerank[index_map[u]] / n_out_edges;
                 }
             }
-            pagerank[index_map[*vi]] = (1.0 - dumping_factor) / boost::num_vertices(lineGraph) + dumping_factor * rank_sum;
+            // 更新顶点vi的pagerank
+            pagerank[index_map[*vi]] = dumping_factor * rank_sum + (1 - dumping_factor) / num_vertices(lineGraph);
         }
 
         double total_diff = 0.0;
+        // 计算pagerank的总差值
         for (auto i = 0; i < pagerank.size(); i++) {
             total_diff += std::abs(pagerank[i] - old_pagerank[i]);
         }
-
+        // 如果pagerank的总差值小于阈值，则停止迭代
         if (total_diff < convergence_threshold) {
             break;
         }
@@ -181,7 +205,8 @@ bool PageRankFAS::isCyclic(Graph &g) {
     return false;
 }
 
-void PageRankFAS::getConnectedComponents(Graph &g, std::vector<Graph> &sccs) {
+// @TODO: fix this function
+void PageRankFAS::computeStronglyConnectedComponents(Graph &g, std::vector<std::set<Vertex>> &sccs) {
     // 利用 Kosaraju 算法计算给定图中的强连接分量
     std::vector<bool> visited(boost::num_vertices(g), false);
     std::stack<Vertex> stk;
@@ -194,7 +219,6 @@ void PageRankFAS::getConnectedComponents(Graph &g, std::vector<Graph> &sccs) {
     Graph r;
     boost::copy_graph(boost::make_reverse_graph(g), r);
     visited.assign(boost::num_vertices(g), false);
-    // 映射节点id(g[v].id)到连通分量中的节点
 
     while (!stk.empty()) {
         auto v = stk.top();
@@ -203,65 +227,7 @@ void PageRankFAS::getConnectedComponents(Graph &g, std::vector<Graph> &sccs) {
             std::set<Vertex> scc;
             std::unordered_map<int, Vertex> vertex_map;
             dfs_reverse(r, v, visited, scc);
-
-            Graph scc_graph;
-            for (auto &v : scc) {
-                if (!vertex_map.count(g[v].id)) {
-                    auto vertex = boost::add_vertex(scc_graph);
-                    scc_graph[vertex].id = g[v].id;
-                    vertex_map[g[v].id] = vertex;
-                }
-            }
-            
-            for (auto &v : scc) {
-                out_edge_iter ei, ei_end;
-                for (boost::tie(ei, ei_end) = boost::out_edges(v, g); ei != ei_end; ei++) {
-                    auto t = boost::target(*ei, scc_graph);
-                    if (vertex_map.count(g[t].id)) {
-                        add_edge(vertex_map[g[v].id], vertex_map[g[t].id], scc_graph);
-                    }
-                }
-            }
-            sccs.push_back(scc_graph);
+            sccs.push_back(scc);
         }
     }
 }
-
-
-// std::vector<std::vector<int>> PageRankFAS::getConnectedComponents(Graph &g) {
-
-//     // 利用 Kosaraju 算法计算给定图中的强连接分量
-//     std::vector<std::vector<int>> ret;
-
-//     // 在原图进行 DFS 遍历，并将节点按照时间排序
-//     std::vector<bool> visited(boost::num_vertices(g), false);
-//     std::stack<int> stk;
-
-//     for (int i = 0; i < boost::num_vertices(g); ++i) {
-//         if (!visited[i]) {
-//             dfs(g, i, visited, stk);
-//         }
-//     }
-
-//     // 在反转图上按照各个节点发现时间逆序进行 DFS 遍历
-//     Graph r;
-//     boost::copy_graph(boost::make_reverse_graph(g), r);
-//     visited.assign(boost::num_vertices(g), false);
-
-//     // std::cout << "Original Graph: " << std::endl;
-//     // boost::print_graph(g, boost::get(boost::vertex_index, g));
-//     // std::cout << "Reversed Graph " << std::endl;
-//     // boost::print_graph(r, boost::get(boost::vertex_index, r));
-    
-//     while (!stk.empty()) {
-//         auto v = stk.top();
-//         stk.pop();
-//         if (!visited[v]) {
-// 	        std::vector<int> scc;
-//             dfs_reverse(r, v, visited, scc);
-//             ret.push_back(scc);
-//         }
-//     }
-
-//     return ret;
-// }

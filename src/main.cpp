@@ -5,10 +5,6 @@
 */
 #include "context.h"
 #include "SimpleGraph.h"
-#include <boost/graph/copy.hpp>
-#include <boost/graph/graph_utility.hpp>
-#include <boost/graph/reverse_graph.hpp>
-#include <boost/graph/depth_first_search.hpp>
 
 void usage() {
     printf("Usage: ./FASSolver <path/to/graph> [algorithm (greedy | sort | pagerank)]\n");
@@ -25,7 +21,9 @@ int main(int argc, char** argv) {
     FASContext context(algorithm);
     Graph g;
     // std::vector<EdgePair> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 0}, {3, 1}};
-    std::vector<EdgePair> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 0}, {5, 6}};
+    std::vector<EdgePair> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 0}, {0, 2}, {1, 3}, {2, 4}, {3, 0}, {4, 1},
+                                   {0, 5}, {1, 6}, {2, 7}, {3, 8}, {4, 9}, {5, 6}, {6, 7}, {7, 8}, {8, 9}, {9, 5},
+                                   {5, 7}, {6, 8}, {7, 9}, {8, 5}, {9, 6}};
     std::unordered_map<int, Vertex> vertex_map;
     for (const auto & edge: edges) {
         if (!vertex_map.count(edge.first)) {
@@ -43,10 +41,7 @@ int main(int argc, char** argv) {
     for (const auto &edge : edges) {
         add_edge(vertex_map[edge.first], vertex_map[edge.second], g);
     }
-    SPDLOG_INFO("Input Graph:");
-    boost::print_graph(g);
 
-    // @TODO: 构造有向图
     auto result = context.getFeedbackArcSet(g);
     return 0;
 }
