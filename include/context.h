@@ -30,8 +30,8 @@ public:
     void setStrategy(FASStrategy *strategy) {
         this->strategy = strategy;
     }
-    std::vector<Edge> getFAS(Graph& g) {
-        return strategy->getFAS(g);
+    std::vector<EdgePair> getFeedbackArcSet(Graph& g) {
+        return strategy->getFeedbackArcSet(g);
     error:
         exit(0);
     }

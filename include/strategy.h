@@ -8,8 +8,12 @@
 // 策略类
 class FASStrategy {
 public:
-    // 寻找最小反馈弧集的接口
-    virtual std::vector<Edge> getFAS(Graph &g) = 0;
+    /**
+     * @brief 计算最小反馈弧集
+     * @param g - 输入图
+     * @return 最小反馈弧集，其中最小反馈弧用std::pair表示，如：(0,1),(1,2)...第一个数为起点，第二数为终点
+    */
+    virtual std::vector<EdgePair> getFeedbackArcSet(Graph &g) = 0;
 };
 
 #endif // __STRATEGY_H__
