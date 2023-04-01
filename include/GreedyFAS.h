@@ -8,7 +8,7 @@
 
 class GreedyFAS: public FASStrategy {
 public:
-    std::vector<Edge> getFAS(Graph &g) override;
+    std::vector<EdgePair> getFeedbackArcSet(Graph &g) override;
 };
 
 #endif // __GREEDY_FAS_H__

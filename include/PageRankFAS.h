@@ -1,6 +1,7 @@
 /**
  * PageRankFAS.h - PageRankFAS Solver
-*/
+ * This class implements a FASStrategy for solving the feedback arc set problem using PageRank algorithm.
+ */
 #ifndef __PAGERANK_FAS_H__
 #define __PAGERANK_FAS_H__
 
@@ -8,32 +9,37 @@
 
 class PageRankFAS: public FASStrategy {
 public:
-    std::vector<Edge> getFAS(Graph &g) override;
+    /**
+     * @brief 计算最小反馈弧集
+     * @param g - 输入图
+     * @return 最小反馈弧集，其中最小反馈弧用std::pair表示，如：(0,1),(1,2)...第一个数为起点，第二数为终点
+     * @note 该函数使用PageRankFAS算法实现
+    */
+    std::vector<EdgePair> getFeedbackArcSet(Graph &g) override;
 private:
+    void getLineGraph(const Graph &g, LineGraph &lineGraph, Vertex v, Vertex prev, std::vector<bool> &visited, std::set<Vertex> &scc, EdgeToVertexMap &edge_to_vertex_map, VertexToEdgeMap &vertex_to_edge_map);
     /**
-     * @brief getLineGraph
-     * @param g the graph
-     * @return the line graph
+     * @brief 计算PageRank值
+     * @param lineGraph - 输入图
+     * @param pagerank - PageRank值
+     * @return
     */
-    Graph* getLineGraph(Graph &g);
+    void computePageRank(const LineGraph &lineGraph, std::vector<double> &pagerank);
     /**
-     * @brief calculatePageRank for each edge
-     * @param lineGraph the line graph
-     * @return the page rank value for each edge
+     * @brief 计算强连通分量
+     * @param g - 输入图
+     * @param sccs - 强连通分量集合
+     * @return
+     * @note 该函数使用Kosaraju算法实现
     */
-    std::vector<double> calculatePageRank(Graph &lingGraph);
+    void computeStronglyConnectedComponents(Graph &g, std::vector<std::set<Vertex>> &sccs);
     /**
-     * @brief isCyclic judge is the graph cyclic
-     * @param g the graph
-     * @return true if the graph has cycle else false
+     * @brief 判断图是否有环
+     * @param g - 输入图
+     * @return
+     * @note 该函数使用DFS算法实现
     */
     bool isCyclic(Graph &g);
-    /**
-     * @brief getConnectedComponents for Graph
-     * @param g the graph
-     * @return the connected components
-    */
-    std::vector<std::vector<int>> getConnectedComponents(Graph &g);
 };
 
 #endif // __PAGERANK_H__
