@@ -3,7 +3,6 @@
 #include "base.h"
 #define private public
 #include "context.h"
-#include "SimpleGraph.h"
 #include "PageRankFAS.h"
 #undef private
 
