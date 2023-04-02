@@ -28,8 +28,8 @@ void readGraph(const std::string &path, std::vector<EdgePair> &edges) {
     fclose(fp);
 }
 
-void drawGraph(Graph &g) {
-    std::ofstream file("result/graph.dot");
+void drawGraph(const std::string &path, Graph &g) {
+    std::ofstream file(path);
     // 导出为graphviz格式
     boost::dynamic_properties dp;
     dp.property("node_id", boost::get(&VertexProperty::id, g));
@@ -81,11 +81,17 @@ int main(int argc, char** argv) {
     for (const auto &edge : edges) {
         add_edge(vertex_map[edge.first], vertex_map[edge.second], g);
     }
+    
+    // 如果是简单图，生成graphviz格式
+    if (graph_path == "graphs/simple.txt") {
+        drawGraph("result/graph_before.dot", g);
+    }
+
     auto result = context.getFeedbackArcSet(g);
 
     // 如果是简单图，生成graphviz格式
     if (graph_path == "graphs/simple.txt") {
-        drawGraph(g);
+        drawGraph("result/graph_after.dot", g);
     }
 
     // 输出结果到result.txt

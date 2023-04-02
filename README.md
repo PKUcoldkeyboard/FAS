@@ -81,7 +81,7 @@ PageRankFAS 算法的输入是一个有向图 G，由顶点 V 和边 E 组成。
 
 ## 数据集
 
-1. 简单图
+### 简单图
 
    每行表示一条边
 
@@ -96,13 +96,25 @@ PageRankFAS 算法的输入是一个有向图 G，由顶点 V 和边 E 组成。
    6 4
    ```
 
-2. 大型图: graphs/graph.txt
+### 大型图
+
+- graphs/graph.txt
 
 ## 运行结果
 
-1. 简单图: 最小反馈弧数量： 2
+### 简单图: 
 
-![](result/graph.png)
+执行前：
+
+![](result/graph_before.png)
+
+执行后：
+
+![](result/graph_after.png)
+
+最小反馈弧的数量为2，分别为(1, 2), (4, 5)
+
+### 大型图
 
 ## 贡献者
 
