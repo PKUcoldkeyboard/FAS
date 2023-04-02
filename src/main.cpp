@@ -5,10 +5,37 @@
 */
 #include "context.h"
 #include "SimpleGraph.h"
+#include <boost/graph/graphviz.hpp>
 
 void usage() {
     printf("Usage: ./FASSolver <path/to/graph> [algorithm (greedy | sort | pagerank)]\n");
     exit(0);
+}
+
+void readGraph(const std::string &path, std::vector<EdgePair> &edges) {
+    FILE *fp = fopen(path.c_str(), "r");
+    if (fp == nullptr) {
+        SPDLOG_ERROR("Failed to open file: {}", path);
+        exit(1);
+    }
+    char *line = nullptr;
+    size_t len = 0;
+    ssize_t read;
+    while ((read = getline(&line, &len, fp)) != -1) {
+        int u, v;
+        sscanf(line, "%d %d", &u, &v);
+        edges.emplace_back(u, v);
+    }
+    fclose(fp);
+}
+
+void drawGraph(Graph &g) {
+    std::ofstream file("result/graph.dot");
+    // 导出为graphviz格式
+    boost::dynamic_properties dp;
+    dp.property("node_id", boost::get(&VertexProperty::id, g));
+    boost::write_graphviz_dp(file, g, dp);
+    file.close();
 }
 
 int main(int argc, char** argv) {
@@ -20,10 +47,10 @@ int main(int argc, char** argv) {
     
     FASContext context(algorithm);
     Graph g;
-    // std::vector<EdgePair> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 0}, {3, 1}};
-    std::vector<EdgePair> edges = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 0}, {0, 2}, {1, 3}, {2, 4}, {3, 0}, {4, 1},
-                                   {0, 5}, {1, 6}, {2, 7}, {3, 8}, {4, 9}, {5, 6}, {6, 7}, {7, 8}, {8, 9}, {9, 5},
-                                   {5, 7}, {6, 8}, {7, 9}, {8, 5}, {9, 6}};
+    std::vector<EdgePair> edges;
+    // 读取graph_path中的文本文件到edges中，每行是一条边
+    readGraph(graph_path, edges);
+    // 将edges中的边添加到图g中
     std::unordered_map<int, Vertex> vertex_map;
     for (const auto & edge: edges) {
         if (!vertex_map.count(edge.first)) {
@@ -41,7 +68,17 @@ int main(int argc, char** argv) {
     for (const auto &edge : edges) {
         add_edge(vertex_map[edge.first], vertex_map[edge.second], g);
     }
-
     auto result = context.getFeedbackArcSet(g);
+
+    // 如果是简单图，生成graphviz格式
+    if (graph_path == "graphs/simple.txt") {
+        drawGraph(g);
+    }
+    // 测试一下输出结果
+    SPDLOG_INFO("Feedback Arcs: ");
+    for (auto &e : result) {
+        SPDLOG_INFO("({}, {})", e.first, e.second);
+    }
+
     return 0;
 }
