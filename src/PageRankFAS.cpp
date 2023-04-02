@@ -95,11 +95,6 @@ std::vector<EdgePair> PageRankFAS::getFeedbackArcSet(Graph &g) {
             boost::remove_edge(e, g);
         }
     }
-    // 测试一下输出结果
-    SPDLOG_INFO("Feedback Arcs: ");
-    for (auto &e : feedback_arcs) {
-        SPDLOG_INFO("({}, {})", e.first, e.second);
-    }
     SPDLOG_INFO("Successfully calculate the minimum feedback arc set.");
     return feedback_arcs;
 }
