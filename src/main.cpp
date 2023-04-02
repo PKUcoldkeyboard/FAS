@@ -37,6 +37,20 @@ void drawGraph(Graph &g) {
     file.close();
 }
 
+void writeResult(const std::string &path, std::vector<EdgePair> &result) {
+    // 如果不存在则创建
+    FILE *fp = fopen(path.c_str(), "w");
+    if (fp == nullptr) {
+        SPDLOG_ERROR("Failed to open file: {}", path);
+        exit(1);
+    }
+    fprintf(fp, "%lu\n", result.size());
+    for (const auto &edge : result) {
+        fprintf(fp, "%d %d\n", edge.first, edge.second);
+    }
+    fclose(fp);
+}
+
 int main(int argc, char** argv) {
     if (argc != 3) {
         usage();
@@ -73,11 +87,13 @@ int main(int argc, char** argv) {
     if (graph_path == "graphs/simple.txt") {
         drawGraph(g);
     }
-    // 测试一下输出结果
-    SPDLOG_INFO("Feedback Arcs: ");
-    for (auto &e : result) {
-        SPDLOG_INFO("({}, {})", e.first, e.second);
-    }
+
+    // 输出结果到result.txt
+    // graphs/simple.txt -> simple
+    std::string graph_name = graph_path.substr(graph_path.find_last_of('/') + 1,
+                             graph_path.find_last_of('.') - graph_path.find_last_of('/') - 1);
+    std::string output_path = "result/" + graph_name + "_" + algorithm + "_"  + "result.txt";
+    writeResult(output_path, result);
 
     return 0;
 }
