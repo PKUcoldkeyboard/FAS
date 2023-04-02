@@ -4,7 +4,6 @@
  * Usage: ./FASSolver <path/to/graph> [algorithm (greedy | sort | pagerank)] 
 */
 #include "context.h"
-#include "SimpleGraph.h"
 #include <boost/graph/graphviz.hpp>
 
 void usage() {

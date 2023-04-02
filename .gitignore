@@ -54,3 +54,4 @@ perf*
 
 FASSolver
 test/test
+*.dot
