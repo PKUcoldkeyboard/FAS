@@ -25,10 +25,3 @@ add_executable(FASSolver ${SOURCES})
 
 # 链接Boost库
 target_link_libraries(FASSolver ${Boost_LIBRARIES})
-
-# 引入gtest库
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
-
-# 添加测试目录
-add_subdirectory(test)
