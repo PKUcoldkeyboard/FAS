@@ -4,12 +4,29 @@
  * Usage: ./FASSolver <path/to/graph> [algorithm (greedy | sort | pagerank)] 
 */
 #include "context.h"
+#include <filesystem>
 #include <boost/graph/graphviz.hpp>
 
+namespace fs = std::filesystem;
+
 void usage() {
-    printf("Usage: ./FASSolver <path/to/graph> [algorithm (greedy | sort | pagerank)]\n");
-    exit(0);
+    SPDLOG_ERROR("Usage: ./FASSolver <path/to/graph> [algorithm (greedy | sort | pagerank)]\n");
+    exit(1);
 }
+
+void createDirectoryIfNotExists(const std::string &path) {
+    fs::path dirPath(path);
+    if (!fs::exists(dirPath)) {
+        if (!fs::create_directory(dirPath)) {
+            SPDLOG_ERROR("Failed to create directory: {}", path);
+            exit(1);
+        }
+    } else if (!fs::is_directory(dirPath)) {
+        SPDLOG_ERROR("Path exists, but is not a directory: {}", path);
+        exit(1);
+    }
+}
+
 
 void readGraph(const std::string &path, std::vector<EdgePair> &edges) {
     FILE *fp = fopen(path.c_str(), "r");
@@ -55,7 +72,10 @@ int main(int argc, char** argv) {
     if (argc != 3) {
         usage();
     }
-    std::string graph_path(argv[1]);
+
+    createDirectoryIfNotExists("result");
+
+    fs::path graph_path(argv[1]);
     std::string algorithm(argv[2]);
     
     FASContext context(algorithm);
@@ -81,23 +101,17 @@ int main(int argc, char** argv) {
     for (const auto &edge : edges) {
         add_edge(vertex_map[edge.first], vertex_map[edge.second], g);
     }
+
+    auto result = context.getFeedbackArcSet(g);
     
     // 如果是简单图，生成graphviz格式
-    if (graph_path == "graphs/simple.txt") {
+    std::string graph_name = graph_path.stem().string();
+
+    if (graph_name == "simple") {
         drawGraph("result/graph_before.dot", g);
     }
 
-    auto result = context.getFeedbackArcSet(g);
-
-    // 如果是简单图，生成graphviz格式
-    if (graph_path == "graphs/simple.txt") {
-        drawGraph("result/graph_after.dot", g);
-    }
-
-    // 输出结果到result.txt
-    // graphs/simple.txt -> simple
-    std::string graph_name = graph_path.substr(graph_path.find_last_of('/') + 1,
-                             graph_path.find_last_of('.') - graph_path.find_last_of('/') - 1);
+    // 输出结果到result目录
     std::string output_path = "result/" + graph_name + "_" + algorithm + "_"  + "result.txt";
     writeResult(output_path, result);
 
