@@ -8,7 +8,7 @@
 
 class SortFAS: public FASStrategy {
 public:
-    std::vector<EdgePair> getFeedbackArcSet(Graph &g) override;
+    boost::container::vector<EdgePair> getFeedbackArcSet(Graph &g) override;
 };
 
 #endif // __SORT_FAS_H__

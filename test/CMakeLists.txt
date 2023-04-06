@@ -14,7 +14,7 @@ set(TEST_SOURCES
 add_executable(test ${TEST_SOURCES})
 
 # 链接gtest和Boost库
-target_link_libraries(test ${GTEST_BOTH_LIBRARIES} ${Boost_LIBRARIES} pthread)
+target_link_libraries(test ${GTEST_BOTH_LIBRARIES} ${Boost_LIBRARIES})
 
 # 指定测试和可执行文件
 add_test(NAME MinFeedBackArcSetTest COMMAND test)

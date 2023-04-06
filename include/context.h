@@ -30,7 +30,7 @@ public:
     void setStrategy(FASStrategy *strategy) {
         this->strategy = strategy;
     }
-    std::vector<EdgePair> getFeedbackArcSet(Graph& g) {
+    boost::container::vector<EdgePair> getFeedbackArcSet(Graph& g) {
         return strategy->getFeedbackArcSet(g);
     error:
         exit(0);

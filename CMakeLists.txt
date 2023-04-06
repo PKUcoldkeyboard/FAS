@@ -3,11 +3,13 @@ cmake_minimum_required(VERSION 3.8)
 project(FAS)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CAMKE_CXX_FLAGS "-O2")
+set(CMAKE_CXX_FLAGS "-O3")
 
 # 添加Boost库
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS thread)
+
 include_directories(${Boost_INCLUDE_DIRS})
+
 
 # 添加项目源文件
 set(SOURCES
@@ -24,4 +26,11 @@ include_directories(include)
 add_executable(FASSolver ${SOURCES})
 
 # 链接Boost库
-target_link_libraries(FASSolver ${Boost_LIBRARIES})
+target_link_libraries(FASSolver ${Boost_LIBRARIES} Boost::thread)
+
+# 引入gtest库
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+
+# 添加测试目录
+add_subdirectory(test)

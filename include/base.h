@@ -4,35 +4,34 @@
 #ifndef __BASE_H__
 #define __BASE_H__
 #include "spdlog_common.h"
-#include <set>
 #include <stack>
 #include <vector>
 #include <queue>
-#include <unordered_map>
 #include <string>
 #include <iostream>
+#include <boost/container/vector.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
-// 定义Graph节点属性
-typedef struct {
-    int id;
-} VertexProperty;
+// 定义Edge Pair数据类型
+typedef std::pair<int, int> EdgePair;
 
-
-// 定义LineGraph节点属性
-typedef struct {
-    // 节点id对： <u, v>，其中u为g中的节点id，v为g中与u相连的节点id，即g中的边(u, v)
-    // 注意与索引区分
-    std::pair<int, int> edge_pair;
-} LineVertexProperty;
-
-// 定义Graph数据类型: vecS -> 使用std::vector存储vertex和edge，bidirectionalS -> 可访问入边和出边的有向图
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
-        VertexProperty, boost::no_property> Graph;
+// 定义Graph数据类型
+typedef boost::adjacency_list<
+        boost::listS,                // 边容器，由于需要频繁删除边，所以使用listS
+        boost::vecS,                 // 节点容器
+        boost::bidirectionalS,       // 有向图
+        int,                         // 节点属性： 实际存储节点的id
+        boost::no_property           // 边属性： 无
+> Graph;
 
 // 定义LineGraph数据类型
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
-        LineVertexProperty, boost::no_property> LineGraph;
+typedef boost::adjacency_list<
+        boost::listS,                // 边容器，由于需要频繁添加边，所以使用listS
+        boost::vecS,                // 节点容器
+        boost::bidirectionalS,      // 有向图
+        EdgePair,                   // 节点属性： 实际存储边的起点和终点
+        boost::no_property          // 边属性： 无
+> LineGraph;
 
 // 定义Edge数据类型
 typedef boost::graph_traits<Graph>::edge_descriptor Edge;
@@ -40,30 +39,16 @@ typedef boost::graph_traits<Graph>::edge_descriptor Edge;
 // 定义Vertex数据类型
 typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
 
-// 定义Edge Pair数据类型
-typedef std::pair<int, int> EdgePair;
-
-// 定义Vertex遍历器
-typedef boost::graph_traits<Graph>::vertex_iterator vertex_iter;
-
-// 定义Edge遍历器
-typedef boost::graph_traits<Graph>::edge_iterator edge_iter;
-typedef boost::graph_traits<Graph>::out_edge_iterator out_edge_iter;
-typedef boost::graph_traits<Graph>::in_edge_iterator in_edge_iter;
+// 定义LineVertex数据类型
+typedef boost::graph_traits<LineGraph>::vertex_descriptor LineVertex;
 
 // 定义Edge Pair的哈希函数
-typedef struct {
-    std::size_t operator()(const EdgePair &p) const {
-        auto h1 = std::hash<int>{}(p.first);
-        auto h2 = std::hash<int>{}(p.second);
-        return h1 ^ h2;
-    }
-} EdgeHash;
+typedef boost::hash<std::pair<int, int>> EdgeHash;
 
 // 用于图G中的边映射为线图L(G)的顶点, key为图G中边的表示EdgePair, value为L(G）中的顶点Vertex
-typedef std::unordered_map<EdgePair, Vertex, EdgeHash> EdgeToVertexMap;
+typedef boost::unordered_map<EdgePair, LineVertex, EdgeHash> EdgeToVertexMap;
 
 // 用于将线图L(G)的顶点映射为图G中的边, key为L(G)的顶点Vertex, value为图G中的边Edge，以便在图G中删除边
-typedef std::unordered_map<Vertex, Edge> VertexToEdgeMap;
+typedef boost::unordered_map<LineVertex, Edge> VertexToEdgeMap;
 
 #endif /* __BASE_H__ */
