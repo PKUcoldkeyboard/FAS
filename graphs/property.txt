@@ -1,0 +1,6 @@
+wordassociation-2011:
+    the number of nodes = 10,617
+    the number of arcs  = 72,172
+enron:
+    the number of nodes = 69,244
+    the number of arcs  = 276,143

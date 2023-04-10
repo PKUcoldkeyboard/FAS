@@ -3,45 +3,23 @@
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/reverse_graph.hpp>
 #include <boost/graph/depth_first_search.hpp>
+#include <boost/asio.hpp>
+#include <boost/thread.hpp>
+#include <chrono>
+#define SEED 42
 
-const Vertex INVALID_VERTEX = std::numeric_limits<Vertex>::max();
+constexpr LineVertex INVALID_VERTEX = std::numeric_limits<LineVertex>::max();
 
-void dfs(const Graph &g, Vertex v, std::vector<bool>& visited, std::stack<Vertex> &stk) {
-    visited[v] = true;
-    out_edge_iter ei, ei_end;
-    for (boost::tie(ei, ei_end) = boost::out_edges(v, g); ei != ei_end; ++ei) {
-        int u = boost::target(*ei, g);
-        if (!visited[u]) {
-            dfs(g, u, visited, stk);
-        }
-    }
-    stk.push(v);
-}
-
-void dfs_reverse(const Graph &g, Vertex v, std::vector<bool> &visited, std::set<Vertex> &scc) {
-    visited[v] = true;
-    scc.insert(v);
-    out_edge_iter ei, ei_end;
-    for (boost::tie(ei, ei_end) = boost::out_edges(v, g); ei != ei_end; ++ei) {
-        int u = boost::target(*ei, g);
-        if (!visited[u]) {
-            dfs_reverse(g, u, visited, scc);
-        }
-    }
-}
-
-bool dfs_cycle(const Graph &g, Vertex v, std::vector<bool> &visited, std::vector<bool> &on_stack) {
+bool dfs_cycle(const Graph &g, Vertex v, boost::container::vector<bool> &visited, boost::container::vector<bool> &on_stack) {
     visited[v] = true;
     on_stack[v] = true;
 
-    out_edge_iter ei, ei_end;
-    for (boost::tie(ei, ei_end) = boost::out_edges(v, g); ei != ei_end; ++ei) {
-        Vertex u = boost::target(*ei, g);
+    for (const auto &ei : boost::make_iterator_range(boost::out_edges(v, g))) {
+        const auto &u = boost::target(ei, g);
         if (!visited[u]) {
             if (dfs_cycle(g, u, visited, on_stack))
                 return true;
-        }
-        else if (on_stack[u]) {
+        } else if (on_stack[u]) {
             return true;
         }
     }
@@ -50,18 +28,44 @@ bool dfs_cycle(const Graph &g, Vertex v, std::vector<bool> &visited, std::vector
     return false;
 }
 
-// @TODO: fix this function
-std::vector<EdgePair> PageRankFAS::getFeedbackArcSet(Graph &g) {
-    std::vector<EdgePair> feedback_arcs;
+bool PageRankFAS::isCyclic(Graph &g) {
+    boost::container::vector<bool> visited(boost::num_vertices(g), false);
+    boost::container::vector<bool> on_stack(boost::num_vertices(g), false);
+    for (const auto &v : boost::make_iterator_range(boost::vertices(g))) {
+        if (!visited[v]) {
+            if (dfs_cycle(g, v, visited, on_stack))
+                return true;
+        }
+    }
+    return false;
+}
+
+boost::container::vector<EdgePair> PageRankFAS::getFeedbackArcSet(Graph &g) {
+    boost::container::vector<EdgePair> feedback_arcs;
+    // 提前预留feedback_arcs空间
+    feedback_arcs.reserve(boost::num_edges(g) / 4);
+    srand(SEED);
     SPDLOG_INFO("Starting PageRankFAS...");
 
-    while (isCyclic(g)) {
-        SPDLOG_INFO("Graph is cyclic. Calculating the minimum feedback arc set...");
-        // 求图G的强连通分量
-        std::vector<std::set<Vertex>> sccs;
-        computeStronglyConnectedComponents(g, sccs);
+    int count = 0;
+    bool flag = boost::num_vertices(g) > 10000;
+    auto start = std::chrono::steady_clock::now();
+    int duration = 0;
 
-        int count = 0;
+    while (isCyclic(g)) {
+        // 打印图的节点数
+        auto end = std::chrono::steady_clock::now();
+        duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        // 每一次百次循环打印一次信息
+        count++;
+        if (count % 100 == 0) {
+            SPDLOG_INFO("Graph is cyclic. Current FAS number: {}, Time Elapsed: {} s, Computing FAS...",
+                        feedback_arcs.size(), duration / 1000.0);
+        }
+        // 求图G的强连通分量
+        boost::container::vector<VertexHashSet> sccs;
+        computeStronglyConnectedComponents(g, sccs);        
+
         // 为每个强连通分量创建线图
         for (auto &scc: sccs) {
             // 只有一个节点，直接跳过
@@ -70,159 +74,226 @@ std::vector<EdgePair> PageRankFAS::getFeedbackArcSet(Graph &g) {
             }
             EdgeToVertexMap edge_to_vertex_map;
             VertexToEdgeMap vertex_to_edge_map;
-            // 计算强连通分量的线图
+            OutDegreeMap out_degree_map;
             LineGraph lg;
-            std::vector<bool> visited(boost::num_vertices(g), false);
+            // 计算强连通分量的线图
+            boost::container::vector<bool> visited(boost::num_vertices(g), false);
+
+            // 创建线图的顶点集
+            for (const auto &v: scc) {
+                for (const auto &ei: boost::make_iterator_range(boost::out_edges(v, g))) {
+                    const auto &u = boost::target(ei, g);
+                    if (scc.count(u)) {
+                        const auto e = std::make_pair(g[v], g[u]);
+                        const auto &z = boost::add_vertex(e, lg);
+                        edge_to_vertex_map[e] = z;
+                        vertex_to_edge_map[z] = ei;
+                    }
+                }
+            }
+
             // 随机选取scc中的一个节点作为起点
-            srand(time(nullptr));
-            auto v = *std::next(scc.begin(), rand() % scc.size());
-            getLineGraph(g, lg, v, INVALID_VERTEX, visited, scc, edge_to_vertex_map, vertex_to_edge_map);
+            // auto s1 = std::chrono::steady_clock::now();
+            const auto &v = *std::next(scc.begin(), rand() % scc.size());
+            getLineGraph(g, lg, v, INVALID_VERTEX, visited, scc, edge_to_vertex_map, out_degree_map);
+            // auto s2 = std::chrono::steady_clock::now();
+            // auto d = std::chrono::duration_cast<std::chrono::milliseconds>(s2 - s1);
+            // SPDLOG_INFO("Lg Time Elapsed: {} ms", d.count());
 
             // 计算线图的PageRank值
-            std::vector<double> pagerank;
-            computePageRank(lg, pagerank);
+            // auto t1 = std::chrono::steady_clock::now();
+            boost::container::vector<float> pagerank;
+            computePageRank(lg, pagerank, out_degree_map);
+            // auto t2 = std::chrono::steady_clock::now();
+            // auto d2 = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+            // SPDLOG_INFO("pr Time Elapsed: {} ms", d2.count());
+
+            // // 打印pagerank
+            // for (const auto &pr: pagerank) {
+            //     SPDLOG_INFO("{}", pr);
+            // }
+            // // 打印分割线
+            // SPDLOG_INFO("====================================");
             
             // 选取PageRank值最大的边
-            auto max_pagerank = std::max_element(pagerank.begin(), pagerank.end());
-            auto max_pagerank_index = std::distance(pagerank.begin(), max_pagerank);
-            auto max_pagerank_edge = lg[max_pagerank_index].edge_pair;
+            const auto &max_pagerank = std::max_element(pagerank.begin(), pagerank.end());
+            const auto &max_pagerank_index = std::distance(pagerank.begin(), max_pagerank);
+            const auto &max_pagerank_edge = lg[max_pagerank_index];
 
             // 将选取的边加入feedback_arcs
-            feedback_arcs.push_back(max_pagerank_edge);
+            feedback_arcs.emplace_back(max_pagerank_edge);
 
             // 删除选取的边, 线图中的edge_pair存储了原图中两个节点的id对，所以可以直接删除，使用vertexToEdgeMap
-            auto e = vertex_to_edge_map[max_pagerank_index];
+            const auto &e = vertex_to_edge_map[max_pagerank_index];
             boost::remove_edge(e, g);
         }
     }
-    SPDLOG_INFO("Successfully calculate the minimum feedback arc set.");
+    // 释放多余的空间
+    feedback_arcs.shrink_to_fit();
+    SPDLOG_INFO("Successfully compute FAS, FAS number: {}, Time Elapsed: {} s", feedback_arcs.size(), duration / 1000.0);
+    // 打印节点数
+    SPDLOG_INFO("Graph has {} nodes and {} edges.", boost::num_vertices(g), boost::num_edges(g));
     return feedback_arcs;
 }
 
+using AdjacentEdgesCache = emhash7::HashMap<Vertex, boost::container::vector<std::pair<LineVertex, Vertex>>>;
 
-void PageRankFAS::getLineGraph(const Graph &g, LineGraph &lineGraph, Vertex v, Vertex prev, std::vector<bool> &visited, std::set<Vertex> &scc, EdgeToVertexMap &edge_to_vertex_map, VertexToEdgeMap &vertex_to_edge_map) {
-    visited[v] = true;
-    out_edge_iter ei, ei_end;
-    // 遍历所有从v出发的边
-    for (boost::tie(ei, ei_end) = boost::out_edges(v, g); ei != ei_end; ++ei) {
-        auto u = boost::target(*ei, g);
-        // 如果u不在scc中，直接跳过
-        if (!scc.count(u)) {
+void getAdjacentEdges(const Graph &g, Vertex u, const VertexHashSet &scc,
+                      const EdgeToVertexMap &edge_to_vertex_map, AdjacentEdgesCache &cache) {
+    if (cache.find(u) != cache.end()) {
+        return;
+    }
+
+    boost::container::vector<std::pair<LineVertex, Vertex>> adjacent_edges;
+    for (const auto &ej : boost::make_iterator_range(boost::out_edges(u, g))) {
+        const auto &k = boost::target(ej, g);
+        if (!scc.count(k)) {
             continue;
         }
-        // 根据e=(v, u)找到L(G)中对应的节点索引
-        auto e = std::make_pair(g[v].id, g[u].id);
-        Vertex z;
-        if (edge_to_vertex_map.count(e)) {
-            z = edge_to_vertex_map[e];
-        } else {
-            z = boost::add_vertex(lineGraph);
-            lineGraph[z].edge_pair = e;
-            edge_to_vertex_map[e] = z;
-            vertex_to_edge_map[z] = *ei;
+        adjacent_edges.emplace_back(edge_to_vertex_map.at({g[u], g[k]}), k);
+    }
+    cache[u] = std::move(adjacent_edges);
+}
+
+void PageRankFAS::getLineGraph(const Graph &g, LineGraph &lineGraph, Vertex v, LineVertex prev,
+                               boost::container::vector<bool> &visited, const VertexHashSet &scc,
+                               EdgeToVertexMap &edge_to_vertex_map, OutDegreeMap &out_degree_map) {
+    std::stack<std::pair<Vertex, LineVertex>> dfsStack;
+    AdjacentEdgesCache adjEdgesCache;
+    dfsStack.emplace(v, prev);
+
+    while (!dfsStack.empty()) {
+        auto curr = dfsStack.top();
+        dfsStack.pop();
+        const Vertex &curr_vertex = curr.first;
+        const LineVertex &curr_prev = curr.second;
+
+        if (visited[curr_vertex]) {
+            continue;
         }
 
-        if (prev != INVALID_VERTEX && prev != z) {
-            boost::add_edge(prev, z, lineGraph);
-        }
+        visited[curr_vertex] = true;
+        getAdjacentEdges(g, curr_vertex, scc, edge_to_vertex_map, adjEdgesCache);
+        const auto &adjacent_edges = adjEdgesCache[curr_vertex];
 
-        if (!visited[u]) {
-            getLineGraph(g, lineGraph, u, z, visited, scc, edge_to_vertex_map, vertex_to_edge_map);
-        } else {
-            out_edge_iter ej, ej_end;
-            for (boost::tie(ej, ej_end) = boost::out_edges(u, g); ej != ej_end; ++ej) {
-                auto k = boost::target(*ej, lineGraph);
-                auto uk = edge_to_vertex_map[std::make_pair(u, k)];
-                if (uk != z) {
-                    boost::add_edge(z, uk, lineGraph);
+        for (const auto &[z, u] : adjacent_edges) {
+            if (curr_prev != INVALID_VERTEX && curr_prev != z) {
+                // 存反边
+                boost::add_edge(z, curr_prev, lineGraph);
+                auto &out_degree = out_degree_map[curr_prev];
+                out_degree++;
+            }
+
+            if (!visited[u]) {
+                dfsStack.emplace(u, z);
+            } else {
+                getAdjacentEdges(g, u, scc, edge_to_vertex_map, adjEdgesCache);
+                const auto &u_adjacent_edges = adjEdgesCache[u];
+
+                for (const auto &[uk, k] : u_adjacent_edges) {
+                    if (uk != z) {
+                        boost::add_edge(uk, z, lineGraph);
+                        auto &out_degree = out_degree_map[z];
+                        out_degree++;
+                    }
                 }
             }
         }
     }
 }
 
-void PageRankFAS::computePageRank(const LineGraph &lineGraph, std::vector<double> &pagerank) {
-    const double dumping_factor = 0.85;
-    const int max_iterations = 100;
-    const double convergence_threshold = 1e-6;
-
-    // key为顶点，value为索引, pagerank的大小为索引的最大值+1
-    boost::property_map<LineGraph, boost::vertex_index_t>::type index_map = get(boost::vertex_index, lineGraph);
-
-    // 初始化pagerank
-    pagerank.resize(num_vertices(lineGraph), 1.0 / num_vertices(lineGraph));
-    std::vector<double> old_pagerank(num_vertices(lineGraph));
-
-    // 迭代计算pagerank
-    for (int iter = 0; iter < max_iterations; iter++) {
-        old_pagerank = pagerank;
-        vertex_iter vi, vi_end;
-        // 遍历线图的所有顶点
-        for (boost::tie(vi, vi_end) = boost::vertices(lineGraph); vi != vi_end; vi++) {
-            double rank_sum = 0;
-            in_edge_iter ei, ei_end;
-            // 遍历顶点vi的所有入边
-            for (boost::tie(ei, ei_end) = boost::in_edges(*vi, lineGraph); ei != ei_end; ei++) {
-                auto u = boost::source(*ei, lineGraph);
-                auto n_out_edges = boost::out_degree(u, lineGraph);
-                if (n_out_edges > 0) {
-                    rank_sum += old_pagerank[index_map[u]] / n_out_edges;
-                }
+void computePageRankWorker(const LineGraph &lineGraph, const boost::container::vector<float> &old_pagerank,
+                          boost::container::vector<float> &pagerank, OutDegreeMap &out_degree_map, int start, int end) {
+    for (auto vi = start; vi < end; ++vi) {
+        float rank_sum = 0.0f;
+        for (const auto &ei : boost::make_iterator_range(boost::out_edges(vi, lineGraph))) {
+            const auto &u = boost::target(ei, lineGraph);
+            const auto &n_out_edges = out_degree_map[u];
+            if (n_out_edges > 0) {
+                rank_sum += old_pagerank[u] / n_out_edges;
             }
-            // 更新顶点vi的pagerank
-            pagerank[index_map[*vi]] = dumping_factor * rank_sum + (1 - dumping_factor) / num_vertices(lineGraph);
         }
-
-        double total_diff = 0.0;
-        // 计算pagerank的总差值
-        for (auto i = 0; i < pagerank.size(); i++) {
-            total_diff += std::abs(pagerank[i] - old_pagerank[i]);
-        }
-        // 如果pagerank的总差值小于阈值，则停止迭代
-        if (total_diff < convergence_threshold) {
-            break;
-        }
+        pagerank[vi] = rank_sum;
     }
 }
 
-bool PageRankFAS::isCyclic(Graph &g) {
+void PageRankFAS::computePageRank(const LineGraph &lineGraph, boost::container::vector<float> &pagerank, OutDegreeMap &out_degree_map) {
+    const int max_iterations = 5;
+    const int num_threads = boost::thread::hardware_concurrency(); // 获取硬件支持的线程数
 
-    std::vector<bool> visited(boost::num_vertices(g), false);
-    std::vector<bool> on_stack(boost::num_vertices(g), false);
+    pagerank.resize(boost::num_vertices(lineGraph), 1.0f / boost::num_vertices(lineGraph));
+    boost::container::vector<float> old_pagerank(boost::num_vertices(lineGraph));
 
-    for (int i = 0; i < num_vertices(g); ++i) {
-        if (!visited[i]) {
-            if (dfs_cycle(g, i, visited, on_stack)) {
-                return true;
+    boost::asio::thread_pool thread_pool(num_threads); // 使用 Boost.Asio 创建线程池
+
+    for (unsigned int iter = 0; iter < max_iterations; iter++) {
+        old_pagerank.swap(pagerank); // 使用 swap 函数提高访存效率
+
+        int num_vertices_per_thread = boost::num_vertices(lineGraph) / num_threads;
+        for (unsigned int i = 0; i < num_threads; ++i) {
+            int start = i * num_vertices_per_thread;
+            int end = (i == num_threads - 1) ? boost::num_vertices(lineGraph) : (i + 1) * num_vertices_per_thread;
+            boost::asio::post(thread_pool, boost::bind(computePageRankWorker, boost::ref(lineGraph), boost::ref(old_pagerank), boost::ref(pagerank), boost::ref(out_degree_map), start, end));
+        }
+
+        thread_pool.join(); // 等待线程池中的所有任务完成
+    }
+
+    thread_pool.stop(); // 停止线程池
+}
+
+void tarjan(Graph& G, Vertex v, boost::container::vector<int>& dfn, boost::container::vector<int>& low, boost::container::vector<bool>& on_stack, boost::container::vector<int>& scc, boost::container::vector<Vertex>& stack, int& index, int& scc_count) {
+    dfn[v] = low[v] = ++index;
+    on_stack[v] = true;
+    stack.emplace_back(v);
+
+    for (const auto &e : boost::make_iterator_range(boost::out_edges(v, G))) {
+        const auto &w = boost::target(e, G);
+        if (scc[w] == -1) {
+            if (low[w] == -1) {
+                tarjan(G, w, dfn, low, on_stack, scc, stack, index, scc_count);
+                low[v] = std::min(low[v], low[w]);
+            } else if (on_stack[w]) {
+                low[v] = std::min(low[v], dfn[w]);
             }
         }
     }
-    return false;
+
+    if (low[v] == dfn[v]) {
+        auto w = stack.back();
+        stack.pop_back();
+        on_stack[v] = false;
+        scc[v] = scc_count;
+        while (w != v) {
+            scc[w] = scc_count;
+            w = stack.back();
+            stack.pop_back();
+            on_stack[w] = false;
+        }
+        scc_count++;
+    }
 }
 
-// @TODO: fix this function
-void PageRankFAS::computeStronglyConnectedComponents(Graph &g, std::vector<std::set<Vertex>> &sccs) {
-    // 利用 Kosaraju 算法计算给定图中的强连接分量
-    std::vector<bool> visited(boost::num_vertices(g), false);
-    std::stack<Vertex> stk;
-    for (int i = 0; i < boost::num_vertices(g); ++i) {
-        if (!visited[i]) {
-            dfs(g, i, visited, stk);
+void PageRankFAS::computeStronglyConnectedComponents(Graph& g, boost::container::vector<VertexHashSet>& sccs) {
+    // 利用 Tarjan 算法计算给定图中的强连接分量
+    boost::container::vector<int> dfn(boost::num_vertices(g), -1);
+    boost::container::vector<int> low(boost::num_vertices(g), -1);
+    boost::container::vector<bool> on_stack(boost::num_vertices(g), false);
+    boost::container::vector<int> scc(boost::num_vertices(g), -1);
+    boost::container::vector<Vertex> stack;
+
+    int index = 0;
+    int scc_count = 0;
+    for (auto v : boost::make_iterator_range(boost::vertices(g))) {
+        if (scc[v] == -1) {
+            tarjan(g, v, dfn, low, on_stack, scc, stack, index, scc_count);
         }
     }
 
-    Graph r;
-    boost::copy_graph(boost::make_reverse_graph(g), r);
-    visited.assign(boost::num_vertices(g), false);
-
-    while (!stk.empty()) {
-        auto v = stk.top();
-        stk.pop();
-        if (!visited[v]) {
-            std::set<Vertex> scc;
-            std::unordered_map<int, Vertex> vertex_map;
-            dfs_reverse(r, v, visited, scc);
-            sccs.push_back(scc);
-        }
+    VertexHashSet tmp;
+    sccs.resize(scc_count, tmp);
+ 
+    for (auto v : boost::make_iterator_range(boost::vertices(g))) {
+        sccs[scc[v]].insert(v);
     }
 }

@@ -28,7 +28,7 @@ void createDirectoryIfNotExists(const std::string &path) {
 }
 
 
-void readGraph(const std::string &path, std::vector<EdgePair> &edges) {
+void readGraph(const std::string &path, boost::container::vector<EdgePair> &edges) {
     FILE *fp = fopen(path.c_str(), "r");
     if (fp == nullptr) {
         SPDLOG_ERROR("Failed to open file: {}", path);
@@ -39,7 +39,7 @@ void readGraph(const std::string &path, std::vector<EdgePair> &edges) {
     ssize_t read;
     while ((read = getline(&line, &len, fp)) != -1) {
         int u, v;
-        sscanf(line, "%d %d", &u, &v);
+        sscanf(line, "%d,%d", &u, &v);
         edges.emplace_back(u, v);
     }
     fclose(fp);
@@ -49,12 +49,12 @@ void drawGraph(const std::string &path, Graph &g) {
     std::ofstream file(path);
     // 导出为graphviz格式
     boost::dynamic_properties dp;
-    dp.property("node_id", boost::get(&VertexProperty::id, g));
+    dp.property("node_id", boost::get(boost::vertex_bundle, g));
     boost::write_graphviz_dp(file, g, dp);
     file.close();
 }
 
-void writeResult(const std::string &path, std::vector<EdgePair> &result) {
+void writeResult(const std::string &path, boost::container::vector<EdgePair> &result) {
     // 如果不存在则创建
     FILE *fp = fopen(path.c_str(), "w");
     if (fp == nullptr) {
@@ -63,7 +63,7 @@ void writeResult(const std::string &path, std::vector<EdgePair> &result) {
     }
     fprintf(fp, "%lu\n", result.size());
     for (const auto &edge : result) {
-        fprintf(fp, "%d %d\n", edge.first, edge.second);
+        fprintf(fp, "%d,%d\n", edge.first, edge.second);
     }
     fclose(fp);
 }
@@ -80,20 +80,18 @@ int main(int argc, char** argv) {
     
     FASContext context(algorithm);
     Graph g;
-    std::vector<EdgePair> edges;
+    boost::container::vector<EdgePair> edges;
     // 读取graph_path中的文本文件到edges中，每行是一条边
     readGraph(graph_path, edges);
     // 将edges中的边添加到图g中
     std::unordered_map<int, Vertex> vertex_map;
     for (const auto & edge: edges) {
         if (!vertex_map.count(edge.first)) {
-            auto v = add_vertex(g);
-            g[v].id = edge.first;
+            auto v = add_vertex(edge.first, g);
             vertex_map[edge.first] = v;
         }
         if (!vertex_map.count(edge.second)) {
-            auto v = add_vertex(g);
-            g[v].id = edge.second;
+            auto v = add_vertex(edge.second, g);
             vertex_map[edge.second] = v;
         }
     }
