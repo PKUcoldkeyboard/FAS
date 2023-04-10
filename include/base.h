@@ -4,7 +4,7 @@
 #ifndef __BASE_H__
 #define __BASE_H__
 #include "spdlog_common.h"
-#include "hash_table8.hpp"
+#include "hash_table7.hpp"
 #include "hash_set8.hpp"
 #include <stack>
 #include <vector>
@@ -36,7 +36,7 @@ typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
 typedef boost::adjacency_list<
         boost::vecS,                // 边容器
         boost::vecS,                // 节点容器
-        boost::bidirectionalS,           // 有向图且需要访问入边（存反图）
+        boost::directedS,           // 有向图且只需要访问入边（存反图）
         EdgePair,                   // 节点属性： 实际存储边的起点和终点
         boost::no_property          // 边属性： 无
 > LineGraph;
@@ -44,13 +44,32 @@ typedef boost::adjacency_list<
 // 定义LineVertex数据类型
 typedef boost::graph_traits<LineGraph>::vertex_descriptor LineVertex;
 
-// 定义Edge Pair的哈希函数
-typedef boost::hash<std::pair<int, int>> EdgeHash;
+template <class T>
+inline void hash_pair(std::size_t& seed, const T& p){
+	boost::hash<T> hash_func;
+	seed ^= hash_func(p) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+
+template<typename S, typename T> struct boost::hash< std::pair<S, T> >{
+	inline size_t operator()(const std::pair<S,T>& p) const{
+		size_t seed = 0;
+		hash_pair(seed, p.first);
+		hash_pair(seed, p.second);
+		return seed;
+	}
+};
+
+typedef boost::hash<std::pair<int, int>> KeyHash;
 
 // 用于图G中的边映射为线图L(G)的顶点, key为图G中边的表示EdgePair, value为L(G）中的顶点Vertex
-typedef emhash8::HashMap<EdgePair, LineVertex, EdgeHash> EdgeToVertexMap;
+typedef emhash7::HashMap<EdgePair, LineVertex, KeyHash> EdgeToVertexMap;
 
 // 用于将线图L(G)的顶点映射为图G中的边, key为L(G)的顶点Vertex, value为图G中的边Edge，以便在图G中删除边
-typedef emhash8::HashMap<LineVertex, Edge, boost::hash<LineVertex>> VertexToEdgeMap;
+typedef emhash7::HashMap<LineVertex, Edge> VertexToEdgeMap;
+
+// 存储线图的出度
+typedef emhash7::HashMap<LineVertex, int> OutDegreeMap;
+
+typedef emhash8::HashSet<Vertex> VertexHashSet;
 
 #endif /* __BASE_H__ */

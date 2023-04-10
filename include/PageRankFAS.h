@@ -18,15 +18,15 @@ public:
     boost::container::vector<EdgePair> getFeedbackArcSet(Graph &g) override;
 private:
     void getLineGraph(const Graph &g, LineGraph &lineGraph, Vertex v, LineVertex prev,
-                      boost::container::vector<bool> &visited, const emhash8::HashSet<Vertex> &scc,
-                      EdgeToVertexMap &edge_to_vertex_map);
+                      boost::container::vector<bool> &visited, const VertexHashSet &scc,
+                      EdgeToVertexMap &edge_to_vertex_map, OutDegreeMap &out_degree_map);
     /**
      * @brief 计算PageRank值
      * @param lineGraph - 输入图
      * @param pagerank - PageRank值
      * @return
     */
-    void computePageRank(const LineGraph &lineGraph, boost::container::vector<float> &pagerank);
+    void computePageRank(const LineGraph &lineGraph, boost::container::vector<float> &pagerank, OutDegreeMap &out_degree_map);
     /**
      * @brief 计算强连通分量
      * @param g - 输入图
@@ -34,7 +34,7 @@ private:
      * @return
      * @note 该函数使用Kosaraju算法实现
     */
-    void computeStronglyConnectedComponents(Graph &g, boost::container::vector<emhash8::HashSet<Vertex>> &sccs);
+    void computeStronglyConnectedComponents(Graph &g, boost::container::vector<VertexHashSet> &sccs);
     /**
      * @brief 判断图是否有环
      * @param g - 输入图

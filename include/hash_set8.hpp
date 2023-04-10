@@ -23,9 +23,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE
 
-#ifndef __HASH_SET8_HPP__
-#define __HASH_SET8_HPP__
-
 #pragma once
 
 #include <cstring>
@@ -76,12 +73,12 @@ constexpr uint32_t INACTIVE = 0xAAAAAAAA;
 constexpr uint32_t END      = 0-0x1u;
 constexpr uint32_t EAD      = 2;
 
-// #ifndef EMH_DEFAULT_LOAD_FACTOR
-//     constexpr static float EMH_DEFAULT_LOAD_FACTOR = 0.80f;
-// #endif
-// #if EMH_CACHE_LINE_SIZE < 32
-//     constexpr static uint32_t EMH_CACHE_LINE_SIZE  = 64;
-// #endif
+#ifndef EMH_DEFAULT_LOAD_FACTOR
+    constexpr static float EMH_DEFAULT_LOAD_FACTOR = 0.80f;
+#endif
+#if EMH_CACHE_LINE_SIZE < 32
+    constexpr static uint32_t EMH_CACHE_LINE_SIZE  = 64;
+#endif
 
 /// A cache-friendly hash table with open addressing, linear/quadratic probing and power-of-two capacity
 template <typename KeyT, typename HashT = std::hash<KeyT>, typename EqT = std::equal_to<KeyT>>
@@ -1525,5 +1522,3 @@ private:
     size_type _last;
 };
 } // namespace emhash
-
-#endif // __HASH_SET8_HPP__
