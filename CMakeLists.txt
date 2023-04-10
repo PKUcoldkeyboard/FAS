@@ -41,7 +41,7 @@ include_directories(include)
 # 定义可执行文件
 add_executable(FASSolver ${SOURCES})
 
-# 链接Boost库和SDSL库
+# 链接Boost库
 target_link_libraries(FASSolver ${Boost_LIBRARIES} Boost::thread)
 
 # 引入gtest库
@@ -50,3 +50,4 @@ target_link_libraries(FASSolver ${Boost_LIBRARIES} Boost::thread)
 
 # 添加测试目录
 # add_subdirectory(test)
+
