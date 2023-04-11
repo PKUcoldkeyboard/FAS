@@ -28,7 +28,7 @@ bool dfs_cycle(const Graph &g, Vertex v, boost::container::vector<bool> &visited
     return false;
 }
 
-bool PageRankFAS::isCyclic(Graph &g) {
+bool PageRankFAS::isCyclic(const Graph &g) {
     boost::container::vector<bool> visited(boost::num_vertices(g), false);
     boost::container::vector<bool> on_stack(boost::num_vertices(g), false);
     for (const auto &v : boost::make_iterator_range(boost::vertices(g))) {
@@ -72,22 +72,21 @@ boost::container::vector<EdgePair> PageRankFAS::getFeedbackArcSet(Graph &g) {
             if (scc.size() == 1) {
                 continue;
             }
-            EdgeToVertexMap edge_to_vertex_map;
+            AdjacentEdgesMap adj_edge_map;
             VertexToEdgeMap vertex_to_edge_map;
             OutDegreeMap out_degree_map;
             LineGraph lg;
             // 计算强连通分量的线图
             boost::container::vector<bool> visited(boost::num_vertices(g), false);
 
-            // 创建线图的顶点集
-            for (const auto &v: scc) {
-                for (const auto &ei: boost::make_iterator_range(boost::out_edges(v, g))) {
-                    const auto &u = boost::target(ei, g);
-                    if (scc.count(u)) {
-                        const auto e = std::make_pair(g[v], g[u]);
-                        const auto &z = boost::add_vertex(e, lg);
-                        edge_to_vertex_map[e] = z;
+            // 创建线图的顶点集并缓存出边
+            for (const auto &u: scc) {
+                for (const auto &ei: boost::make_iterator_range(boost::out_edges(u, g))) {
+                    const auto &v = boost::target(ei, g);
+                    if (scc.count(v)) {
+                        const auto &z = boost::add_vertex({u, v}, lg);
                         vertex_to_edge_map[z] = ei;
+                        adj_edge_map[u].emplace_back(v, z);
                     }
                 }
             }
@@ -95,7 +94,7 @@ boost::container::vector<EdgePair> PageRankFAS::getFeedbackArcSet(Graph &g) {
             // 随机选取scc中的一个节点作为起点
             // auto s1 = std::chrono::steady_clock::now();
             const auto &v = *std::next(scc.begin(), rand() % scc.size());
-            getLineGraph(g, lg, v, INVALID_VERTEX, visited, scc, edge_to_vertex_map, out_degree_map);
+            getLineGraph(g, lg, v, INVALID_VERTEX, visited, adj_edge_map, out_degree_map);
             // auto s2 = std::chrono::steady_clock::now();
             // auto d = std::chrono::duration_cast<std::chrono::milliseconds>(s2 - s1);
             // SPDLOG_INFO("Lg Time Elapsed: {} ms", d.count());
@@ -136,30 +135,10 @@ boost::container::vector<EdgePair> PageRankFAS::getFeedbackArcSet(Graph &g) {
     return feedback_arcs;
 }
 
-using AdjacentEdgesCache = emhash7::HashMap<Vertex, boost::container::vector<std::pair<LineVertex, Vertex>>>;
-
-void getAdjacentEdges(const Graph &g, Vertex u, const VertexHashSet &scc,
-                      const EdgeToVertexMap &edge_to_vertex_map, AdjacentEdgesCache &cache) {
-    if (cache.find(u) != cache.end()) {
-        return;
-    }
-
-    boost::container::vector<std::pair<LineVertex, Vertex>> adjacent_edges;
-    for (const auto &ej : boost::make_iterator_range(boost::out_edges(u, g))) {
-        const auto &k = boost::target(ej, g);
-        if (!scc.count(k)) {
-            continue;
-        }
-        adjacent_edges.emplace_back(edge_to_vertex_map.at({g[u], g[k]}), k);
-    }
-    cache[u] = std::move(adjacent_edges);
-}
-
 void PageRankFAS::getLineGraph(const Graph &g, LineGraph &lineGraph, Vertex v, LineVertex prev,
-                               boost::container::vector<bool> &visited, const VertexHashSet &scc,
-                               EdgeToVertexMap &edge_to_vertex_map, OutDegreeMap &out_degree_map) {
+                               boost::container::vector<bool> &visited, AdjacentEdgesMap &adj_edge_map,
+                               OutDegreeMap &out_degree_map) {
     std::stack<std::pair<Vertex, LineVertex>> dfsStack;
-    AdjacentEdgesCache adjEdgesCache;
     dfsStack.emplace(v, prev);
 
     while (!dfsStack.empty()) {
@@ -173,10 +152,9 @@ void PageRankFAS::getLineGraph(const Graph &g, LineGraph &lineGraph, Vertex v, L
         }
 
         visited[curr_vertex] = true;
-        getAdjacentEdges(g, curr_vertex, scc, edge_to_vertex_map, adjEdgesCache);
-        const auto &adjacent_edges = adjEdgesCache[curr_vertex];
+        const auto &v_adjacent_edges = adj_edge_map[curr_vertex];
 
-        for (const auto &[z, u] : adjacent_edges) {
+        for (const auto &[u, z] : v_adjacent_edges) {
             if (curr_prev != INVALID_VERTEX && curr_prev != z) {
                 // 存反边
                 boost::add_edge(z, curr_prev, lineGraph);
@@ -187,10 +165,9 @@ void PageRankFAS::getLineGraph(const Graph &g, LineGraph &lineGraph, Vertex v, L
             if (!visited[u]) {
                 dfsStack.emplace(u, z);
             } else {
-                getAdjacentEdges(g, u, scc, edge_to_vertex_map, adjEdgesCache);
-                const auto &u_adjacent_edges = adjEdgesCache[u];
+                const auto &u_adjacent_edges = adj_edge_map[u];
 
-                for (const auto &[uk, k] : u_adjacent_edges) {
+                for (const auto &[k, uk] : u_adjacent_edges) {
                     if (uk != z) {
                         boost::add_edge(uk, z, lineGraph);
                         auto &out_degree = out_degree_map[z];
@@ -242,7 +219,7 @@ void PageRankFAS::computePageRank(const LineGraph &lineGraph, boost::container::
     thread_pool.stop(); // 停止线程池
 }
 
-void tarjan(Graph& G, Vertex v, boost::container::vector<int>& dfn, boost::container::vector<int>& low, boost::container::vector<bool>& on_stack, boost::container::vector<int>& scc, boost::container::vector<Vertex>& stack, int& index, int& scc_count) {
+void tarjan(const Graph& G, Vertex v, boost::container::vector<int>& dfn, boost::container::vector<int>& low, boost::container::vector<bool>& on_stack, boost::container::vector<int>& scc, boost::container::vector<Vertex>& stack, int& index, int& scc_count) {
     dfn[v] = low[v] = ++index;
     on_stack[v] = true;
     stack.emplace_back(v);
@@ -274,7 +251,7 @@ void tarjan(Graph& G, Vertex v, boost::container::vector<int>& dfn, boost::conta
     }
 }
 
-void PageRankFAS::computeStronglyConnectedComponents(Graph& g, boost::container::vector<VertexHashSet>& sccs) {
+void PageRankFAS::computeStronglyConnectedComponents(const Graph& g, boost::container::vector<VertexHashSet>& sccs) {
     // 利用 Tarjan 算法计算给定图中的强连接分量
     boost::container::vector<int> dfn(boost::num_vertices(g), -1);
     boost::container::vector<int> low(boost::num_vertices(g), -1);

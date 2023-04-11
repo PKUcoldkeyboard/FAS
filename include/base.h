@@ -12,6 +12,7 @@
 #include <string>
 #include <iostream>
 #include <boost/container/vector.hpp>
+#include <boost/container/small_vector.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
 // 定义Edge Pair数据类型
@@ -44,25 +45,8 @@ typedef boost::adjacency_list<
 // 定义LineVertex数据类型
 typedef boost::graph_traits<LineGraph>::vertex_descriptor LineVertex;
 
-template <class T>
-inline void hash_pair(std::size_t& seed, const T& p){
-	boost::hash<T> hash_func;
-	seed ^= hash_func(p) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-}
-
-template<typename S, typename T> struct boost::hash< std::pair<S, T> >{
-	inline size_t operator()(const std::pair<S,T>& p) const{
-		size_t seed = 0;
-		hash_pair(seed, p.first);
-		hash_pair(seed, p.second);
-		return seed;
-	}
-};
-
-typedef boost::hash<std::pair<int, int>> KeyHash;
-
-// 用于图G中的边映射为线图L(G)的顶点, key为图G中边的表示EdgePair, value为L(G）中的顶点Vertex
-typedef emhash7::HashMap<EdgePair, LineVertex, KeyHash> EdgeToVertexMap;
+// 缓存某个节点u的所有出边v以及(u,v)对应的LineVertex
+typedef emhash7::HashMap<Vertex, boost::container::small_vector<std::pair<Vertex, LineVertex>, 10>> AdjacentEdgesMap;
 
 // 用于将线图L(G)的顶点映射为图G中的边, key为L(G)的顶点Vertex, value为图G中的边Edge，以便在图G中删除边
 typedef emhash7::HashMap<LineVertex, Edge> VertexToEdgeMap;
