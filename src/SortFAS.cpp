@@ -1,6 +1,30 @@
 #include "SortFAS.h"
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <cstdio>
+#include <chrono>
 
-boost::container::vector<int> sorting(boost::unordered_map<int, boost::container::vector<int>>& graph, int n) {
+boost::container::vector<EdgePair> getBackArc(emhash7::HashMap<int, boost::container::vector<int>>& graph, boost::container::vector<int>& index2node, boost::container::vector<int>& node2index) {
+    // 从排列结果index2node和node2index中获取反向弧
+    boost::container::vector<EdgePair> results;
+    for (int i = 0; i < index2node.size(); i++) {
+        int v = index2node[i];
+        if (graph.find(v) != graph.end()) {
+            for (int k = 0; k < graph[v].size(); k++) {
+                int w = graph[v][k];
+                if (node2index[w] < i) {
+                    results.emplace_back(v, w);
+                }
+            }
+        }
+    }
+    return results;
+};
+
+
+boost::container::vector<EdgePair> sorting(emhash7::HashMap<int, boost::container::vector<int>>& graph, int n) {
+    // sortFAS算法主体，返回结果是反馈弧集合
     boost::container::vector<int> node2index;
     boost::container::vector<int> index2node;
     for (int i = 0; i <= n; i++) {
@@ -51,45 +75,39 @@ boost::container::vector<int> sorting(boost::unordered_map<int, boost::container
         node2index[v] = toIndex;
     }
 
-    return index2node;
+    return getBackArc(graph, index2node, node2index);
 }
 
+
+emhash7::HashMap<int, boost::container::vector<int>> constructGraph(Graph &g, int &n){
+    emhash7::HashMap<int, boost::container::vector<int>> adjList; // 图的邻接链表
+    for (const auto &e : boost::make_iterator_range(boost::edges(g))) {
+        int v = boost::source(e, g);
+        int w = boost::target(e, g);
+        boost::container::vector<int> adj;
+        if (adjList.find(v) == adjList.end()) {
+            adjList[v] = adj;
+        } else {
+            adj = adjList[v];
+        }
+        adj.push_back(w);
+        n = std::max(n, w);
+        n = std::max(n, v);
+        adjList[v] = adj;
+    }
+
+    return adjList;
+}
+
+
 boost::container::vector<EdgePair> SortFAS::getFeedbackArcSet(Graph &g) {
-    boost::container::vector<EdgePair> feedback_arcs;
     SPDLOG_INFO("Starting SortFAS...");
-    
-    boost::unordered_map<int, boost::container::vector<int>> adjList;
-    for (auto vi : boost::make_iterator_range(boost::vertices(g))) {
-        for (auto ei : boost::make_iterator_range(boost::out_edges(vi, g))) {
-            int from = boost::source(ei, g);
-            int to = boost::target(ei, g);
-            if (adjList.find(from) == adjList.end()) {
-                boost::container::vector<int> vec;
-                vec.push_back(to);
-                adjList[from] = vec;
-            } else {
-                adjList[from].push_back(to);
-            }
-        }
-    }
-    auto n = boost::num_vertices(g);
-    auto result = sorting(adjList, n);
-
-    boost::container::vector<int> index_to_order(n, -1);
-
-    for (int i = 0; i < n; i++) {
-        index_to_order[result[i]] = i;
-    }
-
-    for (int u = 0; u < n; u++) {
-        // 遍历u的出边
-        for (auto ei : boost::make_iterator_range(boost::out_edges(u, g))) {
-            int v = boost::target(ei, g);
-            if (index_to_order[u] > index_to_order[v]) {
-                feedback_arcs.emplace_back(std::make_pair(g[u], g[v]));
-            }
-        }
-    }
-
-    return feedback_arcs;
+    int n = 0;
+    emhash7::HashMap<int, boost::container::vector<int>> graph = constructGraph(g, n);
+    auto start = std::chrono::high_resolution_clock::now();
+    auto result = sorting(graph, n);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    SPDLOG_INFO("Successfully compute FAS, FAS number: {}, Time Elapsed: {} s", result.size(), duration.count() / 1000.0);
+    return result;
 }
