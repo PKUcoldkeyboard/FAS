@@ -123,7 +123,7 @@ boost::container::vector<EdgePair> PageRankFAS::getFeedbackArcSet(Graph &g) {
             feedback_arcs.emplace_back(max_pagerank_edge);
 
             // 删除选取的边, 线图中的edge_pair存储了原图中两个节点的id对，所以可以直接删除，使用vertexToEdgeMap
-            const auto &e = vertex_to_edge_map[max_pagerank_index];
+            const auto &e = vertex_to_edge_map.at(max_pagerank_index);
             boost::remove_edge(e, g);
         }
     }
@@ -131,41 +131,41 @@ boost::container::vector<EdgePair> PageRankFAS::getFeedbackArcSet(Graph &g) {
     feedback_arcs.shrink_to_fit();
     SPDLOG_INFO("Successfully compute FAS, FAS number: {}, Time Elapsed: {} s", feedback_arcs.size(), duration / 1000.0);
     // 打印节点数
-    SPDLOG_INFO("Graph has {} nodes and {} edges.", boost::num_vertices(g), boost::num_edges(g));
+    SPDLOG_INFO("Graph remains {} nodes and {} edges.", boost::num_vertices(g), boost::num_edges(g));
     return feedback_arcs;
 }
 
-void PageRankFAS::getLineGraph(const Graph &g, LineGraph &lineGraph, Vertex v, LineVertex prev,
-                               boost::container::vector<bool> &visited, AdjacentEdgesMap &adj_edge_map,
+void PageRankFAS::getLineGraph(const Graph &g, LineGraph &lineGraph, const Vertex &v, const LineVertex &prev,
+                               boost::container::vector<bool> &visited, const AdjacentEdgesMap &adj_edge_map,
                                OutDegreeMap &out_degree_map) {
     std::stack<std::pair<Vertex, LineVertex>> dfsStack;
     dfsStack.emplace(v, prev);
 
     while (!dfsStack.empty()) {
-        auto curr = dfsStack.top();
+        const auto &curr = dfsStack.top();
         dfsStack.pop();
-        const Vertex &curr_vertex = curr.first;
-        const LineVertex &curr_prev = curr.second;
+        const auto &curr_vertex = curr.first;
+        const auto &curr_prev = curr.second;
 
         if (visited[curr_vertex]) {
             continue;
         }
 
         visited[curr_vertex] = true;
-        const auto &v_adjacent_edges = adj_edge_map[curr_vertex];
+        const auto &v_adjacent_edges = adj_edge_map.at(curr_vertex);
 
         for (const auto &[u, z] : v_adjacent_edges) {
             if (curr_prev != INVALID_VERTEX && curr_prev != z) {
                 // 存反边
                 boost::add_edge(z, curr_prev, lineGraph);
-                auto &out_degree = out_degree_map[curr_prev];
+                auto &out_degree = out_degree_map.at(curr_prev);
                 out_degree++;
             }
 
             if (!visited[u]) {
                 dfsStack.emplace(u, z);
             } else {
-                const auto &u_adjacent_edges = adj_edge_map[u];
+                const auto &u_adjacent_edges = adj_edge_map.at(u);
 
                 for (const auto &[k, uk] : u_adjacent_edges) {
                     if (uk != z) {
@@ -180,12 +180,12 @@ void PageRankFAS::getLineGraph(const Graph &g, LineGraph &lineGraph, Vertex v, L
 }
 
 void computePageRankWorker(const LineGraph &lineGraph, const boost::container::vector<float> &old_pagerank,
-                          boost::container::vector<float> &pagerank, OutDegreeMap &out_degree_map, int start, int end) {
+                          boost::container::vector<float> &pagerank, const OutDegreeMap &out_degree_map, int start, int end) {
     for (auto vi = start; vi < end; ++vi) {
         float rank_sum = 0.0f;
         for (const auto &ei : boost::make_iterator_range(boost::out_edges(vi, lineGraph))) {
             const auto &u = boost::target(ei, lineGraph);
-            const auto &n_out_edges = out_degree_map[u];
+            const auto &n_out_edges = out_degree_map.at(u);
             if (n_out_edges > 0) {
                 rank_sum += old_pagerank[u] / n_out_edges;
             }
@@ -194,7 +194,7 @@ void computePageRankWorker(const LineGraph &lineGraph, const boost::container::v
     }
 }
 
-void PageRankFAS::computePageRank(const LineGraph &lineGraph, boost::container::vector<float> &pagerank, OutDegreeMap &out_degree_map) {
+void PageRankFAS::computePageRank(const LineGraph &lineGraph, boost::container::vector<float> &pagerank, const OutDegreeMap &out_degree_map) {
     const int max_iterations = 5;
     const int num_threads = boost::thread::hardware_concurrency(); // 获取硬件支持的线程数
 

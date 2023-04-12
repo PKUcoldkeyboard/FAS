@@ -12,7 +12,6 @@
 #include <string>
 #include <iostream>
 #include <boost/container/vector.hpp>
-#include <boost/container/small_vector.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
 // 定义Edge Pair数据类型
@@ -46,7 +45,7 @@ typedef boost::adjacency_list<
 typedef boost::graph_traits<LineGraph>::vertex_descriptor LineVertex;
 
 // 缓存某个节点u的所有出边v以及(u,v)对应的LineVertex
-typedef emhash7::HashMap<Vertex, boost::container::small_vector<std::pair<Vertex, LineVertex>, 10>> AdjacentEdgesMap;
+typedef emhash7::HashMap<Vertex, boost::container::vector<std::pair<Vertex, LineVertex>>> AdjacentEdgesMap;
 
 // 用于将线图L(G)的顶点映射为图G中的边, key为L(G)的顶点Vertex, value为图G中的边Edge，以便在图G中删除边
 typedef emhash7::HashMap<LineVertex, Edge> VertexToEdgeMap;
