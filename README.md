@@ -116,8 +116,8 @@ If you want to try these algorithms, you need to clone this project, install the
    ```
 
 <div style="display:flex;">
-    <img src="result/graph_before.png" style="width:20%; margin-right:10px;">
-    <img src="result/graph_after.png" style="width:20%; margin-left:10px;">
+    <img src="result/graph_before.png" style="width:50%; height:auto; margin-right:5%;">
+    <img src="result/graph_after.png" style="width:50%; height:auto; margin-left:5%;">
 </div>
 
 ### Large Graph
