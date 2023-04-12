@@ -117,8 +117,8 @@ PageRankFAS 算法的输入是一个有向图 G，由顶点 V 和边 E 组成。
    ```
 
 <div style="display:flex;">
-    <img src="result/graph_before.png" style="width:30%; height:auto; margin-right:5%;">
-    <img src="result/graph_after.png" style="width:30%; height:auto; margin-left:5%;">
+    <img src="result/graph_before.png" style="width:30%; object-fit: cover; margin-right:5%;">
+    <img src="result/graph_after.png" style="width:30%; object-fit: cover; margin-left:5%;">
 </div>
 
 ### 大型图
