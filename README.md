@@ -5,7 +5,7 @@
 ![](https://img.shields.io/badge/Version-0.1-orange.svg)
 [![emhash](https://img.shields.io/badge/emhash-7%2F8-blueviolet.svg)](https://github.com/ktprime/emhash)
 
-[English](README.md) | [简体中文](README_CN.md)
+[English](README.md) | [简体中文](README-CN.md)
 
 This project is an <b>unofficial</b> implementation of three approximation algorithms for the minimum feedback arc set problem based on the C++ Boost Graph Library (BGL) and emhash7/8. The problem is to find the minimum set of arcs in a directed acyclic graph (DAG) such that the tails and heads of the arcs form a cycle.
 

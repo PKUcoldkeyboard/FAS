@@ -5,7 +5,7 @@
 ![](https://img.shields.io/badge/Version-0.1-orange.svg)
 [![emhash](https://img.shields.io/badge/emhash-7%2F8-blueviolet.svg)](https://github.com/ktprime/emhash)
 
-[English](README.md) | [简体中文](README_CN.md)
+[English](README.md) | [简体中文](README-CN.md)
 
 该项目是一个基于C++ Boost Graph Library(BGL)库和emhash7/8的<b>非官方</b>实现，实现了最小反馈弧集问题的三种近似算法。该问题是在有向图(DAG)中找到最小的反馈弧集，其中反馈弧集是指一组弧，使得从这些反馈弧的尾部到头部的路径构成一个环。
 
@@ -117,8 +117,8 @@ PageRankFAS 算法的输入是一个有向图 G，由顶点 V 和边 E 组成。
    ```
 
 <div style="display:flex;">
-    <img src="result/graph_before.png" style="width:50%; height:auto; margin-right:5%;">
-    <img src="result/graph_after.png" style="width:50%; height:auto; margin-left:5%;">
+    <img src="result/graph_before.png" style="width:30%; height:auto; margin-right:5%;">
+    <img src="result/graph_after.png" style="width:30%; height:auto; margin-left:5%;">
 </div>
 
 ### 大型图
