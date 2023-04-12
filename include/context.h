@@ -11,12 +11,15 @@
 class FASContext {
 private:
     FASStrategy *strategy;
+    bool isGreedy;
 public:
     FASContext(FASStrategy *strategy) {
         this->strategy = strategy;
+        isGreedy = false;
     }
     FASContext(std::string algorithm) {
         if (algorithm == "greedy") {
+            isGreedy = true;
             this->strategy = new GreedyFAS(); 
         } else if (algorithm == "sort") {
             this->strategy = new SortFAS();
@@ -31,9 +34,10 @@ public:
         this->strategy = strategy;
     }
     boost::container::vector<EdgePair> getFeedbackArcSet(Graph& g) {
+        if (isGreedy) {
+            
+        }
         return strategy->getFeedbackArcSet(g);
-    error:
-        exit(0);
     }
 };
 

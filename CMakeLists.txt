@@ -45,9 +45,9 @@ add_executable(FASSolver ${SOURCES})
 target_link_libraries(FASSolver ${Boost_LIBRARIES} Boost::thread)
 
 # 引入gtest库
-# find_package(GTest REQUIRED)
-# include_directories(${GTEST_INCLUDE_DIRS})
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
 
 # 添加测试目录
-# add_subdirectory(test)
+add_subdirectory(test)
 
