@@ -62,7 +62,7 @@ TEST(StrongConnectedComponentsTest, StrongConnectedComponentsTest1) {
 
     // 调用getConnectedComponents获取连通分量
     PageRankFAS fas;
-    boost::container::vector<boost::unordered_set<Vertex>> sccs;
+    boost::container::vector<emhash8::HashSet<Vertex>> sccs;
     fas.computeStronglyConnectedComponents(g, sccs);
     ASSERT_EQ(sccs.size(), 3);
 }
@@ -78,7 +78,7 @@ TEST(StrongConnectedComponentsTest, StrongConnectedComponentsTest2) {
 
     // 调用getConnectedComponents获取连通分量
     PageRankFAS fas;
-    boost::container::vector<boost::unordered_set<Vertex>> sccs;
+    boost::container::vector<emhash8::HashSet<Vertex>> sccs;
     fas.computeStronglyConnectedComponents(g, sccs);
     ASSERT_EQ(sccs.size(), 3);
 }
@@ -94,7 +94,7 @@ TEST(StrongConnectedComponentsTest, StrongConnectedComponentsTest3) {
 
     // 调用getConnectedComponents获取连通分量
     PageRankFAS fas;
-    boost::container::vector<boost::unordered_set<Vertex>> sccs;
+    boost::container::vector<emhash8::HashSet<Vertex>> sccs;
     fas.computeStronglyConnectedComponents(g, sccs);
     ASSERT_EQ(sccs.size(), 2);
 }

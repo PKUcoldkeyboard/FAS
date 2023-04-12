@@ -6,7 +6,6 @@
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <chrono>
-#define SEED 42
 
 constexpr LineVertex INVALID_VERTEX = std::numeric_limits<LineVertex>::max();
 
@@ -44,7 +43,7 @@ boost::container::vector<EdgePair> PageRankFAS::getFeedbackArcSet(Graph &g) {
     boost::container::vector<EdgePair> feedback_arcs;
     // 提前预留feedback_arcs空间
     feedback_arcs.reserve(boost::num_edges(g) / 4);
-    srand(SEED);
+    srand(time(nullptr));
     SPDLOG_INFO("Starting PageRankFAS...");
 
     int count = 0;
@@ -84,7 +83,7 @@ boost::container::vector<EdgePair> PageRankFAS::getFeedbackArcSet(Graph &g) {
                 for (const auto &ei: boost::make_iterator_range(boost::out_edges(u, g))) {
                     const auto &v = boost::target(ei, g);
                     if (scc.count(v)) {
-                        const auto &z = boost::add_vertex({u, v}, lg);
+                        const auto &z = boost::add_vertex({g[u], g[v]}, lg);
                         vertex_to_edge_map[z] = ei;
                         adj_edge_map[u].emplace_back(v, z);
                     }
