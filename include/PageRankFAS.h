@@ -11,11 +11,11 @@ class PageRankFAS: public FASStrategy {
 public:
     boost::container::vector<EdgePair> getFeedbackArcSet(Graph &g) override;
 private:
-    void getLineGraph(const Graph &g, LineGraph &lineGraph, Vertex v, LineVertex prev,
-                      boost::container::vector<bool> &visited, AdjacentEdgesMap &adj_edge_map,
+    void getLineGraph(const Graph &g, LineGraph &lineGraph, const Vertex &v, const LineVertex &prev,
+                      boost::container::vector<bool> &visited, const AdjacentEdgesMap &adj_edge_map,
                       OutDegreeMap &out_degree_map);
 
-    void computePageRank(const LineGraph &lineGraph, boost::container::vector<float> &pagerank, OutDegreeMap &out_degree_map);
+    void computePageRank(const LineGraph &lineGraph, boost::container::vector<float> &pagerank, const OutDegreeMap &out_degree_map);
     void computeStronglyConnectedComponents(const Graph &g, boost::container::vector<VertexHashSet> &sccs);
     bool isCyclic(const Graph &g);
 };
