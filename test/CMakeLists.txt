@@ -5,9 +5,6 @@ include_directories(${GTEST_INCLUDE_DIRS})
 # 添加测试源文件
 set(TEST_SOURCES
     test.cpp
-    ../src/GreedyFAS.cpp
-    ../src/SortFAS.cpp
-    ../src/PageRankFAS.cpp
 )
 
 # 定义测试用例

@@ -7,11 +7,11 @@
 
 [English](README.md) | [简体中文](README-CN.md)
 
-该项目是一个基于C++ Boost Graph Library(BGL)库和emhash7/8的<b>非官方</b>实现，实现了最小反馈弧集问题的三种近似算法。该问题是在有向图(DAG)中找到最小的反馈弧集，其中反馈弧集是指一组弧，使得从这些反馈弧的尾部到头部的路径构成一个环。
+该项目是一个基于链式前向星存图、boost（boost::hash、asio线程池）以及emhash7/8的<b>非官方</b>实现，实现了最小反馈弧集问题的三种近似算法。该问题是在有向图中找到最小的反馈弧集，其中反馈弧集是指一组弧，使得从这些反馈弧的尾部到头部的路径构成一个环。
 
 ## 算法实现
 
-该项目基于C++ BGL库实现了三种近似算法：
+该项目基于C++实现了三种近似算法：
 
 * GreedyFAS
 这是一种基于贪心策略的算法，用贪心法生成一个线性排列，将该线性排列中的后向边集作为结果返回。
@@ -109,6 +109,7 @@ PageRankFAS 算法的输入是一个有向图 G，由顶点 V 和边 E 组成。
 ### 简单图: 
 
 - graphs/simple.txt
+  - PageRankFAS
 
    ```
    2
@@ -116,10 +117,18 @@ PageRankFAS 算法的输入是一个有向图 G，由顶点 V 和边 E 组成。
    4,5
    ```
 
-![](result/graph_before.png)
-![](result/graph_after.png)
+![](result/simple.png)
+![](result/simple_after.png)
 
 ### 大型图
+- graphs/wordassociation-2011.txt
+  - GreedyFAS: 13634条反馈弧, 耗时0.701s
+  - SortFAS: 13510条反馈弧, 耗时0.817s
+  - PageRankFAS: 12114条反馈弧, 耗时70.385s
+- graphs/enron.txt
+  - GreedyFAS: 38850条反馈弧, 耗时10.989s
+  - SortFAS: 36548条反馈弧, 耗时14.281s
+  - PageRankFAS: 
 
 ## 贡献者
 <a href="https://github.com/PKUcoldkeyboard/FAS/graphs/contributors">

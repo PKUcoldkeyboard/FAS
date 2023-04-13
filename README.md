@@ -7,11 +7,11 @@
 
 [English](README.md) | [简体中文](README-CN.md)
 
-This project is an <b>unofficial</b> implementation of three approximation algorithms for the minimum feedback arc set problem based on the C++ Boost Graph Library (BGL) and emhash7/8. The problem is to find the minimum set of arcs in a directed acyclic graph (DAG) such that the tails and heads of the arcs form a cycle.
+This project is an <b>unofficial</b> implementation based on the chained forward star graph storage, Boost (boost::hash, asio thread pool), and emhash7/8. It realizes three approximation algorithms for the Minimum Feedback Arc Set problem. The problem is to find the smallest set of arcs in a directed graph. The set of arcs is called a feedback arc set, which forms a cycle from the tail to the head of these arcs.
 
 ## Algorithm Implementations
 
-The project implements three approximation algorithms based on the C++ BGL library:
+The project implements three approximation algorithms based on the C++ language:
 
 * GreedyFAS
 This is a greedy algorithm that generates a linear ordering using a greedy approach and returns the set of backward edges in the resulting linear ordering.
@@ -108,6 +108,7 @@ If you want to try these algorithms, you need to clone this project, install the
 ### Simple Graph
 
 - graphs/simple.txt
+  - PageRankFAS
 
    ```
    2
@@ -115,10 +116,19 @@ If you want to try these algorithms, you need to clone this project, install the
    4,5
    ```
 
-![](result/graph_before.png)
-![](result/graph_after.png)
+![](result/simple.png)
+![](result/simple_after.png)
 
 ### Large Graph
+
+- graphs/wordassociation-2011.txt
+  - GreedyFAS: 13634 fas, time elapsed: 0.701s
+  - SortFAS: 13510 fas, time elapsed: 0.817s
+  - PageRankFAS: 12114 fas, time elapsed: 70.385s
+- graphs/enron.txt
+  - GreedyFAS: 38850 fas, time elapsed: 10.989s
+  - SortFAS: 36548 fas, time elapsed: 14.281s
+  - PageRankFAS: 
 
 ## Contributors
 
