@@ -124,11 +124,11 @@ PageRankFAS 算法的输入是一个有向图 G，由顶点 V 和边 E 组成。
 - graphs/wordassociation-2011.txt
   - GreedyFAS: 13634条反馈弧, 耗时0.701s
   - SortFAS: 13510条反馈弧, 耗时0.817s
-  - PageRankFAS: 12114条反馈弧, 耗时70.385s
+  - PageRankFAS: 12086条反馈弧, 耗时68.856s
 - graphs/enron.txt
   - GreedyFAS: 38850条反馈弧, 耗时10.989s
   - SortFAS: 36548条反馈弧, 耗时14.281s
-  - PageRankFAS: 
+  - PageRankFAS: 33796条反馈弧, 耗时1398.224s
 
 ## 贡献者
 <a href="https://github.com/PKUcoldkeyboard/FAS/graphs/contributors">
