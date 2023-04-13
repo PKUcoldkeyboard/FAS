@@ -64,7 +64,7 @@ public:
         int duration = 0;
         int cnt = 0;
         int old_size = 0;
-        while (is_cyclic(g)) {
+        while (true) {
             auto end = std::chrono::steady_clock::now();
             duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
             // 每100次循环打印一次
@@ -77,7 +77,11 @@ public:
             std::vector<emhash8::HashSet<int>> sccs;
             computeStronglyConnectedComponents(g, sccs);    
 
-
+            // 强连通分量数量等于图的节点数，说明图中没有环
+            if (sccs.size() == n) {
+                break;
+            }
+            
             for (const auto &scc : sccs) {
                 if (scc.size() <= 1) {
                     continue;
@@ -98,9 +102,9 @@ public:
                         const auto &u = g.edges[i].to;
                         if (scc.count(u)) {
                             auto edge = std::make_pair(v, u);
-                            lineGraph.emplace(cnt, std::vector<int>());
-                            edgeIndex.emplace(edge, cnt);
-                            nodeIndex.emplace(cnt, edge);
+                            lineGraph[cnt] = std::vector<int>();
+                            edgeIndex[edge] = cnt;
+                            nodeIndex[cnt] = edge;
                             cnt++;
                         }
                     }
@@ -139,7 +143,7 @@ public:
                 g.remove_edge(edge.first, edge.second);;
             }
         }
-
+        
         auto end = std::chrono::steady_clock::now();
         duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         SPDLOG_INFO("Successfully compute FAS, FAS number: {}, Time Elapsed: {}s", fas.size(), duration / 1000.0);
@@ -238,7 +242,7 @@ private:
         }
     }
     void getLineGraph(const PageRankGraph &g, emhash7::HashMap<int, std::vector<int>> &lineGraph,
-                      const int &v, const int &prev, std::vector<bool> visited, std::vector<int> &out_degree,
+                      const int &v, const int &prev, std::vector<bool> &visited, std::vector<int> &out_degree,
                       const EdgeMap &edgeIndex) {
         std::stack<std::pair<int, int>> call_stack;
         call_stack.emplace(v, prev);

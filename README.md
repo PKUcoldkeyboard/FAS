@@ -124,11 +124,11 @@ If you want to try these algorithms, you need to clone this project, install the
 - graphs/wordassociation-2011.txt
   - GreedyFAS: 13634 fas, time elapsed: 0.701s
   - SortFAS: 13510 fas, time elapsed: 0.817s
-  - PageRankFAS: 12114 fas, time elapsed: 70.385s
+  - PageRankFAS: 12086 fas, time elapsed: 68.856s
 - graphs/enron.txt
   - GreedyFAS: 38850 fas, time elapsed: 10.989s
   - SortFAS: 36548 fas, time elapsed: 14.281s
-  - PageRankFAS: 
+  - PageRankFAS: 33796 fas, time elapsed: 1398.224s
 
 ## Contributors
 
