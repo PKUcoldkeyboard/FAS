@@ -1,4 +1,4 @@
 #!/bin/bash
 
-dot -Tpng graph_before.dot -o graph_before.png
-dot -Tpng graph_after.dot -o graph_after.png
+dot -Tpng simple.dot -o simple.png
+dot -Tpng simple_after.dot -o simple_after.png

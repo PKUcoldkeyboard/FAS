@@ -1,8 +1,6 @@
 #ifndef __UTILS_HPP__
 #define __UTILS_HPP__
-#include "base.h"
 #include <filesystem>
-#include <boost/graph/graphviz.hpp>
 
 namespace fs = std::filesystem;
 
@@ -19,33 +17,38 @@ void createDirectoryIfNotExists(const std::string &path) {
     }
 }
 
-void readGraph(const std::string &path, boost::container::vector<EdgePair> &edges) {
-    FILE *fp = fopen(path.c_str(), "r");
+void read_edges(std::string input, std::vector<std::pair<int, int>> &edges, int &n) {
+    FILE* file = fopen(input.c_str(), "r");
+    if (file == NULL) {
+        SPDLOG_ERROR("Open file {} failed.", input);
+    }
+    int u, v;
+    while (fscanf(file, "%d,%d", &u, &v) != EOF) {
+        edges.emplace_back(std::make_pair(u, v));
+        n = std::max(n, std::max(u, v));
+    }
+    n++;
+    fclose(file);
+}
+
+void draw_graph(const std::string &path, std::vector<std::pair<int, int>> edges) {
+    // 将edges转换为graphviz格式图
+    std::string graphviz = "digraph G {\n";
+    for (const auto &edge : edges) {
+        graphviz += std::to_string(edge.first) + " -> " + std::to_string(edge.second) + ";\n";
+    }
+    graphviz += "}";
+    // 如果不存在则创建
+    FILE *fp = fopen(path.c_str(), "w");
     if (fp == nullptr) {
         SPDLOG_ERROR("Failed to open file: {}", path);
         exit(1);
     }
-    char *line = nullptr;
-    size_t len = 0;
-    ssize_t read;
-    while ((read = getline(&line, &len, fp)) != -1) {
-        int u, v;
-        sscanf(line, "%d,%d", &u, &v);
-        edges.emplace_back(u, v);
-    }
+    fprintf(fp, "%s", graphviz.c_str());
     fclose(fp);
 }
 
-void drawGraph(const std::string &path, Graph &g) {
-    std::ofstream file(path);
-    // 导出为graphviz格式
-    boost::dynamic_properties dp;
-    dp.property("node_id", boost::get(boost::vertex_bundle, g));
-    boost::write_graphviz_dp(file, g, dp);
-    file.close();
-}
-
-void writeResult(const std::string &path, boost::container::vector<EdgePair> &result) {
+void write_result(const std::string &path, std::vector<std::pair<int, int>> &result) {
     // 如果不存在则创建
     FILE *fp = fopen(path.c_str(), "w");
     if (fp == nullptr) {

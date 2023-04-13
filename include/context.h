@@ -3,23 +3,20 @@
 */
 #ifndef __CONTEXT_H__
 #define __CONTEXT_H__
-#include "GreedyFAS.h"
-#include "SortFAS.h"
-#include "PageRankFAS.h"
+#include "GreedyFAS.hpp"
+#include "SortFAS.hpp"
+#include "PageRankFAS.hpp"
 
 // 上下文类
 class FASContext {
 private:
     FASStrategy *strategy;
-    bool isGreedy;
 public:
     FASContext(FASStrategy *strategy) {
         this->strategy = strategy;
-        isGreedy = false;
     }
     FASContext(std::string algorithm) {
         if (algorithm == "greedy") {
-            isGreedy = true;
             this->strategy = new GreedyFAS(); 
         } else if (algorithm == "sort") {
             this->strategy = new SortFAS();
@@ -33,11 +30,8 @@ public:
     void setStrategy(FASStrategy *strategy) {
         this->strategy = strategy;
     }
-    boost::container::vector<EdgePair> getFeedbackArcSet(Graph& g) {
-        if (isGreedy) {
-            
-        }
-        return strategy->getFeedbackArcSet(g);
+    std::vector<std::pair<int, int>> getFeedbackArcSet(std::string input) {
+        return strategy->getFeedbackArcSet(input);
     }
 };
 
