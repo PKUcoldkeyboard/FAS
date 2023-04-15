@@ -133,10 +133,10 @@ If you want to try these algorithms, you need to clone this project, install the
 ## Contributors
 
 <a href="https://github.com/PKUcoldkeyboard/FAS/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=PKUcoldkeyboard/FAS" />
+  <img src="https://contrib.rocks./image?repo=PKUcoldkeyboard/FAS" />
 </a>
 
-Made with contrib.rocks.
+Made with [contrib.rocks](https://contrib.rocks.).
 
 ## License
 This project is licensed under the AGPL-3.0 License. See the LICENSE file for more information.
