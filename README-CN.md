@@ -132,10 +132,10 @@ PageRankFAS 算法的输入是一个有向图 G，由顶点 V 和边 E 组成。
 
 ## 贡献者
 <a href="https://github.com/PKUcoldkeyboard/FAS/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=PKUcoldkeyboard/FAS" />
+  <img src="https://contrib.rocks./image?repo=PKUcoldkeyboard/FAS" />
 </a>
 
-Made with [contrib.rocks](https://contrib.rocks).
+Made with [contrib.rocks](https://contrib.rocks.).
 
 ## 许可证
 
