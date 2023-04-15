@@ -108,6 +108,30 @@ If you want to try these algorithms, you need to clone this project, install the
 ### Simple Graph
 
 - graphs/simple.txt
+  - GreedyFAS
+
+   ```
+   2
+   2,3
+   6,4
+   ```
+
+![](result/simple.png)
+![](result/simple_after_greedy.png)
+
+- graphs/simple.txt
+  - SortFAS
+
+   ```
+   2
+   2,3
+   5,6
+   ```
+
+![](result/simple.png)
+![](result/simple_after_sort.png)
+
+- graphs/simple.txt
   - PageRankFAS
 
    ```
@@ -129,6 +153,11 @@ If you want to try these algorithms, you need to clone this project, install the
   - GreedyFAS: 38850 fas, time elapsed: 10.989s
   - SortFAS: 36548 fas, time elapsed: 14.281s
   - PageRankFAS: 33796 fas, time elapsed: 1398.224s
+  
+<div style="display:flex;">
+    <img src="result/fas_wordassociation-2011.png" style="width:40%; object-fit: cover;">
+    <img src="result/fas_enron.png" style="width:40%; object-fit: cover;">
+</div>
 
 ## Contributors
 
