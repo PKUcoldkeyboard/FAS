@@ -5,7 +5,7 @@
 ![](https://img.shields.io/badge/Version-0.1-orange.svg)
 [![emhash](https://img.shields.io/badge/emhash-7%2F8-blueviolet.svg)](https://github.com/ktprime/emhash)
 
-[English](README.md) | [简体中文](README-CN.md)
+[English](README-en.md) | [简体中文](README.md)
 
 该项目是一个基于链式前向星存图、boost（boost::hash、asio线程池）以及emhash7/8的<b>非官方</b>实现，实现了最小反馈弧集问题的三种近似算法。该问题是在有向图中找到最小的反馈弧集，其中反馈弧集是指一组弧，使得从这些反馈弧的尾部到头部的路径构成一个环。
 
