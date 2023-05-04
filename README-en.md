@@ -5,7 +5,7 @@
 ![](https://img.shields.io/badge/Version-0.1-orange.svg)
 [![emhash](https://img.shields.io/badge/emhash-7%2F8-blueviolet.svg)](https://github.com/ktprime/emhash)
 
-[English](README.md) | [简体中文](README-CN.md)
+[English](README-en.md) | [简体中文](README.md)
 
 This project is an <b>unofficial</b> implementation based on the chained forward star graph storage, Boost (boost::hash, asio thread pool), and emhash7/8. It realizes three approximation algorithms for the Minimum Feedback Arc Set problem. The problem is to find the smallest set of arcs in a directed graph. The set of arcs is called a feedback arc set, which forms a cycle from the tail to the head of these arcs.
 
