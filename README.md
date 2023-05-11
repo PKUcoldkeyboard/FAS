@@ -4,6 +4,7 @@
 ![](https://img.shields.io/badge/gtest-1.11.0--3-red.svg)
 ![](https://img.shields.io/badge/Version-0.1-orange.svg)
 [![emhash](https://img.shields.io/badge/emhash-7%2F8-blueviolet.svg)](https://github.com/ktprime/emhash)
+![](https://img.shields.io/github/stars/PKUcoldkeyboard/FAS?style=social)
 
 [English](README-en.md) | [简体中文](README.md)
 
